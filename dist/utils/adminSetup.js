@@ -16,7 +16,7 @@ const models_1 = require("../models");
 const logger_1 = require("./logger");
 const createDefaultAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const adminExists = yield models_1.User.exists({ role: 'admin' });
+        const adminExists = yield models_1.User.exists({ role: enums_1.roles.admin });
         if (adminExists) {
             logger_1.logger.info('Admin Exists');
             return;
@@ -36,6 +36,7 @@ const createDefaultAdmin = () => __awaiter(void 0, void 0, void 0, function* () 
     }
     catch (error) {
         logger_1.logger.error(`Failed to create a Default Admin:${error.message}`);
+        process.exit(1);
     }
 });
 exports.createDefaultAdmin = createDefaultAdmin;

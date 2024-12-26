@@ -1,5 +1,5 @@
-export enum status{
-    present='present',
-    absent='absent',
-    late='late'
+export enum status {
+    present = 'present',
+    absent = 'absent',
+    late = 'late'
 };

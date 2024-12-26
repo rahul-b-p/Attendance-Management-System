@@ -11,5 +11,5 @@ export interface IAttendance extends Document {
     date: YYYYMMDD;
     status: status;
     remarks: string;
-    createAt:number;
+    createAt: number;
 };

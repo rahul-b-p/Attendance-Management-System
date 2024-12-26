@@ -6,7 +6,7 @@ import { logger } from "./logger";
 
 export const createDefaultAdmin = async () => {
     try {
-        const adminExists = await User.exists({ role: 'admin' })
+        const adminExists = await User.exists({ role: roles.admin })
         if (adminExists) {
             logger.info('Admin Exists');
             return;
@@ -30,5 +30,6 @@ export const createDefaultAdmin = async () => {
         logger.info('Default Admin Created');
     } catch (error: any) {
         logger.error(`Failed to create a Default Admin:${error.message}`);
+        process.exit(1);
     }
 }
