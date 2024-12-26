@@ -12,20 +12,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.connectDB = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
+exports.verifyPassword = exports.getEncryptedPassword = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const logger_1 = require("../utils/logger");
-const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
+const getEncryptedPassword = (password) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const connectionString = process.env.DB_CONNECT;
-        if (!connectionString)
-            throw new Error("The database connection string is not properly assigned to the project's environment configuration.");
-        const mongoConnect = yield mongoose_1.default.connect(connectionString);
-        logger_1.logger.info(`Mongo Connected:${mongoConnect.connection.host}`);
+        const salt = yield bcrypt_1.default.genSalt(Number(process.env.SALT));
+        const encryptedPassword = yield bcrypt_1.default.hash(password, salt);
+        return encryptedPassword;
     }
     catch (error) {
-        logger_1.logger.error(`Failed to connect with mongo:${error.message}`);
-        process.exit(1);
+        logger_1.logger.error(error);
+        throw new Error("An Error occur while password encryption");
     }
 });
-exports.connectDB = connectDB;
+exports.getEncryptedPassword = getEncryptedPassword;
+const verifyPassword = (password, hashPass) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const isVerifiedPassword = yield bcrypt_1.default.compare(password, hashPass);
+        return isVerifiedPassword;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error("An Error occur while password verification");
+    }
+});
+exports.verifyPassword = verifyPassword;
