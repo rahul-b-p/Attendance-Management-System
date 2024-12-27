@@ -16,3 +16,4 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./user.interface"), exports);
 __exportStar(require("./attendance.interface"), exports);
+__exportStar(require("./token.interface"), exports);

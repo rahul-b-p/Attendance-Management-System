@@ -15,3 +15,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./password.config"), exports);
+__exportStar(require("./jwt/access"), exports);
+__exportStar(require("./jwt/refresh"), exports);
