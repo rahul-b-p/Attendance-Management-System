@@ -8,11 +8,14 @@ const dotenv_1 = require("dotenv");
 const logger_1 = require("./utils/logger");
 const connections_1 = require("./connections");
 const adminSetup_1 = require("./utils/adminSetup");
+const middlewares_1 = require("./middlewares");
 (0, dotenv_1.config)();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 (0, connections_1.connectDB)();
 (0, adminSetup_1.createDefaultAdmin)();
+app.use(express_1.default.json());
+app.use(middlewares_1.ErrorHandler);
 app.listen(port, () => {
     logger_1.logger.info(`Server running at http://localhost:${port}`);
 });
