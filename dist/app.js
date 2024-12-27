@@ -17,7 +17,11 @@ const port = process.env.PORT || 3000;
 (0, adminSetup_1.createDefaultAdmin)();
 app.use(express_1.default.json());
 app.use('/auth', routers_1.authRouter);
-app.use('/refersh', routers_1.refreshRouter);
+app.use('/refersh', middlewares_1.refreshTokenAuth, routers_1.refreshRouter);
+app.use(middlewares_1.accessTokenAuth);
+app.use('/admin', routers_1.adminRouter);
+app.use('/user', routers_1.userRouter);
+app.use('/attendance', routers_1.attendanceRouter);
 app.use(middlewares_1.ErrorHandler);
 app.listen(port, () => {
     logger_1.logger.info(`Server running at http://localhost:${port}`);

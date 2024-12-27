@@ -3,8 +3,9 @@ import { config } from "dotenv";
 import { logger } from './utils/logger';
 import { connectDB } from './connections';
 import { createDefaultAdmin } from './utils/adminSetup';
-import { ErrorHandler } from './middlewares';
-import { authRouter, refreshRouter } from './routers';
+import { accessTokenAuth, ErrorHandler, refreshTokenAuth } from './middlewares';
+import { adminRouter, attendanceRouter, authRouter, refreshRouter, userRouter } from './routers';
+import { checkTokenBlacklist } from './services';
 
 config();
 
@@ -16,13 +17,14 @@ createDefaultAdmin();
 
 app.use(express.json());
 
-app.use('/auth', authRouter)
-app.use('/refersh', refreshRouter)
-
-
-
+app.use('/auth', authRouter);
+app.use('/refersh', refreshTokenAuth, refreshRouter);
+app.use(accessTokenAuth);
+app.use('/admin', adminRouter);
+app.use('/user', userRouter);
+app.use('/attendance', attendanceRouter);
 app.use(ErrorHandler);
 
-app.listen(port,()=>{
+app.listen(port, () => {
     logger.info(`Server running at http://localhost:${port}`);
 });

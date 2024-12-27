@@ -17,3 +17,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./user.interface"), exports);
 __exportStar(require("./attendance.interface"), exports);
 __exportStar(require("./token.interface"), exports);
+__exportStar(require("./reqPayload.type"), exports);
