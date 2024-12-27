@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const checkRefreshTokenExistsById = (_id, RefreshToken) => __awaiter(void 0, void 0, void 0, function* () {
@@ -51,3 +51,28 @@ const userExistsById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.userExistsById = userExistsById;
+const findUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield models_1.User.findOne({ email }).lean();
+        return user;
+    }
+    catch (error) {
+        logger_1.logger.error(error.message);
+        throw new Error(error.message);
+    }
+});
+exports.findUserByEmail = findUserByEmail;
+const updateRefreshToken = (_id, refreshToken) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const updatedUser = yield models_1.User.findByIdAndUpdate({ _id }, { refreshToken });
+        if (!updatedUser)
+            throw new Error("Can't find the existing user to update");
+        yield updatedUser.save();
+        return;
+    }
+    catch (error) {
+        logger_1.logger.error(error.message);
+        throw new Error(error.message);
+    }
+});
+exports.updateRefreshToken = updateRefreshToken;

@@ -5,7 +5,6 @@ import { connectDB } from './connections';
 import { createDefaultAdmin } from './utils/adminSetup';
 import { accessTokenAuth, ErrorHandler, refreshTokenAuth, validateRole, validateUser } from './middlewares';
 import { adminRouter, attendanceRouter, authRouter, refreshRouter, userRouter } from './routers';
-import { checkTokenBlacklist } from './services';
 import { roles } from './enums';
 
 config();
