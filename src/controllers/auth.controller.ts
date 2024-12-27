@@ -4,7 +4,8 @@ import { AuthenticationError, InternalServerError, NotFoundError } from "../erro
 import { signAccessToken, signRefreshToken, verifyPassword } from "../config";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { LoginBody } from "../types";
-import { findUserByEmail, updateRefreshToken } from "../services";
+import { findUserByEmail, findUserById, updateRefreshToken } from "../services";
+import { customRequestWithPayload } from "../interfaces";
 
 
 
@@ -29,5 +30,25 @@ export const login = async (req: Request<{}, any, LoginBody>, res: Response, nex
     } catch (error) {
         logger.error(error);
         next(new InternalServerError())
+    }
+}
+
+export const refreshToken = async (req: customRequestWithPayload, res: Response, next: NextFunction) => {
+    try {
+        const id = req.payload?.id
+        if (!id) throw new Error('The user ID was not added to the payload by the authentication middleware.');
+
+        const existingUser = await findUserById(id);
+        if (!existingUser) return next(new NotFoundError());
+
+        const AccessToken = await signAccessToken(existingUser._id.toString(), existingUser.role);
+        const RefreshToken = await signRefreshToken(existingUser._id.toString(), existingUser.role);
+
+        await updateRefreshToken(existingUser._id, RefreshToken);
+
+        res.status(200).json(await sendSuccessResponse('Token refreshed successfully', { AccessToken, RefreshToken }));
+    } catch (error) {
+        logger.error(error);
+        next(new InternalServerError('Something went wrong'));
     }
 }

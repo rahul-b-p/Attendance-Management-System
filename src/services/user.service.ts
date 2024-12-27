@@ -59,3 +59,13 @@ export const updateRefreshToken = async (_id: Types.ObjectId, refreshToken: stri
         throw new Error(error.message);
     }
 }
+
+export const findUserById = async (_id: string): Promise<UserToUse | null> => {
+    try {
+        const user = await User.findById({ _id }).lean() as UserToUse
+        return user;
+    } catch (error: any) {
+        logger.error(error.message);
+        throw new Error(error.message);
+    }
+}

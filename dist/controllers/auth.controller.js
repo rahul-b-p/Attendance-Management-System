@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = void 0;
+exports.refreshToken = exports.login = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const config_1 = require("../config");
@@ -36,3 +36,23 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.login = login;
+const refreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const id = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        if (!id)
+            throw new Error('The user ID was not added to the payload by the authentication middleware.');
+        const existingUser = yield (0, services_1.findUserById)(id);
+        if (!existingUser)
+            return next(new errors_1.NotFoundError());
+        const AccessToken = yield (0, config_1.signAccessToken)(existingUser._id.toString(), existingUser.role);
+        const RefreshToken = yield (0, config_1.signRefreshToken)(existingUser._id.toString(), existingUser.role);
+        yield (0, services_1.updateRefreshToken)(existingUser._id, RefreshToken);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Token refreshed successfully', { AccessToken, RefreshToken }));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Something went wrong'));
+    }
+});
+exports.refreshToken = refreshToken;

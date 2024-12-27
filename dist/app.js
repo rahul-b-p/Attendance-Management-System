@@ -18,7 +18,7 @@ const port = process.env.PORT || 3000;
 (0, adminSetup_1.createDefaultAdmin)();
 app.use(express_1.default.json());
 app.use('/auth', routers_1.authRouter);
-app.use('/refersh', middlewares_1.refreshTokenAuth, routers_1.refreshRouter);
+app.use('/refresh', middlewares_1.refreshTokenAuth, routers_1.refreshRouter);
 app.use(middlewares_1.accessTokenAuth);
 app.use('/admin', (0, middlewares_1.validateRole)(enums_1.roles.admin), routers_1.adminRouter);
 app.use('/user', middlewares_1.validateUser, routers_1.userRouter);

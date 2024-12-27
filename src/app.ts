@@ -18,7 +18,7 @@ createDefaultAdmin();
 app.use(express.json());
 
 app.use('/auth', authRouter);
-app.use('/refersh', refreshTokenAuth, refreshRouter);
+app.use('/refresh', refreshTokenAuth, refreshRouter);
 app.use(accessTokenAuth);
 app.use('/admin', validateRole(roles.admin), adminRouter);
 app.use('/user', validateUser, userRouter);
