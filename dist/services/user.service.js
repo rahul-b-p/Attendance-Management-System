@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkRefreshTokenExistsById = void 0;
+exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const checkRefreshTokenExistsById = (_id, RefreshToken) => __awaiter(void 0, void 0, void 0, function* () {
@@ -28,3 +28,26 @@ const checkRefreshTokenExistsById = (_id, RefreshToken) => __awaiter(void 0, voi
     }
 });
 exports.checkRefreshTokenExistsById = checkRefreshTokenExistsById;
+const findRoleById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield models_1.User.findById({ _id });
+        if (!user)
+            return null;
+        return user.role;
+    }
+    catch (error) {
+        logger_1.logger.error(error.message);
+        throw new Error(error.message);
+    }
+});
+exports.findRoleById = findRoleById;
+const userExistsById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userExists = yield models_1.User.exists({ _id });
+        return userExists ? true : false;
+    }
+    catch (error) {
+        return false;
+    }
+});
+exports.userExistsById = userExistsById;

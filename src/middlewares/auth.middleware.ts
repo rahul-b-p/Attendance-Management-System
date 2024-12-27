@@ -4,6 +4,7 @@ import { AuthenticationError } from "../errors";
 import { logger } from "../utils/logger";
 import { customRequestWithPayload, TokenPayload } from "../interfaces";
 import { checkRefreshTokenExistsById, checkTokenBlacklist } from "../services";
+import { isValidObjectId } from "../utils/objectIdValidator";
 
 
 
@@ -17,6 +18,10 @@ export const accessTokenAuth = async (req: customRequestWithPayload, res: Respon
 
         const tokenPayload: TokenPayload = await verifyAccessToken(AccessToken);
         const { id } = tokenPayload;
+        
+        const isValidId = isValidObjectId(id);
+        if (!isValidId) return next(new AuthenticationError());
+
         req.payload = {
             id
         }
