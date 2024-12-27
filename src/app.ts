@@ -4,6 +4,7 @@ import { logger } from './utils/logger';
 import { connectDB } from './connections';
 import { createDefaultAdmin } from './utils/adminSetup';
 import { ErrorHandler } from './middlewares';
+import { authRouter, refreshRouter } from './routers';
 
 config();
 
@@ -11,9 +12,14 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 connectDB();
-createDefaultAdmin()
+createDefaultAdmin();
 
-app.use(express.json())
+app.use(express.json());
+
+app.use('/auth', authRouter)
+app.use('/refersh', refreshRouter)
+
+
 
 app.use(ErrorHandler);
 
