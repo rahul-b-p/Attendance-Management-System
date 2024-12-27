@@ -38,6 +38,7 @@ const enums_1 = require("../enums");
 const attendanceSchema = new mongoose_1.Schema({
     studentId: {
         type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'users',
         required: true
     },
     date: {

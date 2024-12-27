@@ -34,43 +34,23 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const enums_1 = require("../enums");
-const userSchema = new mongoose_1.Schema({
-    username: {
+const classSchema = new mongoose_1.Schema({
+    className: {
         type: String,
         required: true
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-    },
-    hashPassword: {
-        type: String,
-        required: true
-    },
-    role: {
-        type: String,
-        required: true,
-        enum: Object.values(enums_1.roles)
-    },
-    refreshToken: {
-        type: String,
-        required: false
-    },
-    assignedClasses: [
+    teachers: [
         {
             type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: "classes",
-        },
+            ref: 'users'
+        }
     ],
-    classes: [
+    students: [
         {
             type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: "classes",
+            ref: 'users'
         }
     ]
 });
-const User = mongoose_1.default.model('users', userSchema);
-exports.default = User;
+const Class = mongoose_1.default.model('classes', classSchema);
+exports.default = Class;

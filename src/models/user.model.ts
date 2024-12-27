@@ -26,8 +26,20 @@ const userSchema = new Schema<IUser>({
     refreshToken: {
         type: String,
         required: false
-    }
-})
+    },
+    assignedClasses: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "classes", 
+        },
+    ],
+    classes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "classes",
+        } 
+    ]
+});
 
 
 const User = mongoose.model('users', userSchema);
