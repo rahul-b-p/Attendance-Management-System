@@ -7,3 +7,4 @@ const schemas_1 = require("../schemas");
 const controllers_1 = require("../controllers");
 exports.router = (0, express_1.Router)();
 exports.router.post('/login', (0, middlewares_1.validateReqBody)(schemas_1.loginSchema), controllers_1.authController.login);
+exports.router.post('/logout', middlewares_1.accessTokenAuth, controllers_1.authController.logout);

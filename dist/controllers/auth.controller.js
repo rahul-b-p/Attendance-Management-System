@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshToken = exports.login = void 0;
+exports.logout = exports.refreshToken = exports.login = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const config_1 = require("../config");
@@ -56,3 +56,28 @@ const refreshToken = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.refreshToken = refreshToken;
+const logout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const id = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        if (!id)
+            throw new Error('The user ID was not added to the payload by the authentication middleware.');
+        const AccessToken = (_b = req.headers.authorization) === null || _b === void 0 ? void 0 : _b.split(' ')[1];
+        if (!AccessToken)
+            throw new Error('AccessToken missed from header after auth middleware');
+        const existingUser = yield (0, services_1.findUserById)(id);
+        if (!existingUser)
+            return next(new errors_1.NotFoundError());
+        yield (0, services_1.blackListToken)(AccessToken);
+        if (existingUser.refreshToken) {
+            yield (0, services_1.blackListToken)(existingUser.refreshToken);
+            yield (0, services_1.deleteRefreshToken)(existingUser._id, existingUser.refreshToken);
+        }
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Logged out successfully.'));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Something went wrong'));
+    }
+});
+exports.logout = logout;

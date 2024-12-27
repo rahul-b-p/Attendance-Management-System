@@ -4,7 +4,7 @@ import { AuthenticationError, InternalServerError, NotFoundError } from "../erro
 import { signAccessToken, signRefreshToken, verifyPassword } from "../config";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { LoginBody } from "../types";
-import { findUserByEmail, findUserById, updateRefreshToken } from "../services";
+import { blackListToken, deleteRefreshToken, findUserByEmail, findUserById, updateRefreshToken } from "../services";
 import { customRequestWithPayload } from "../interfaces";
 
 
@@ -47,6 +47,30 @@ export const refreshToken = async (req: customRequestWithPayload, res: Response,
         await updateRefreshToken(existingUser._id, RefreshToken);
 
         res.status(200).json(await sendSuccessResponse('Token refreshed successfully', { AccessToken, RefreshToken }));
+    } catch (error) {
+        logger.error(error);
+        next(new InternalServerError('Something went wrong'));
+    }
+}
+
+export const logout = async (req: customRequestWithPayload, res: Response, next: NextFunction) => {
+    try {
+        const id = req.payload?.id
+        if (!id) throw new Error('The user ID was not added to the payload by the authentication middleware.');
+
+        const AccessToken = req.headers.authorization?.split(' ')[1];
+        if (!AccessToken) throw new Error('AccessToken missed from header after auth middleware');
+
+        const existingUser = await findUserById(id);
+        if (!existingUser) return next(new NotFoundError());
+
+        await blackListToken(AccessToken);
+        if (existingUser.refreshToken) {
+            await blackListToken(existingUser.refreshToken);
+            await deleteRefreshToken(existingUser._id, existingUser.refreshToken);
+        }
+
+        res.status(200).json(await sendSuccessResponse('Logged out successfully.'));
     } catch (error) {
         logger.error(error);
         next(new InternalServerError('Something went wrong'));

@@ -69,3 +69,15 @@ export const findUserById = async (_id: string): Promise<UserToUse | null> => {
         throw new Error(error.message);
     }
 }
+
+export const deleteRefreshToken = async (_id: Types.ObjectId, refreshToken: string): Promise<void> => {
+    try {
+        const updatedUser = await User.findByIdAndUpdate({ _id }, { $unset: { refreshToken: 1 } });
+        if (!updatedUser) throw new Error("Can't find the existing user to update");
+        await updatedUser.save();
+        return;
+    } catch (error: any) {
+        logger.error(error.message);
+        throw new Error(error.message);
+    }
+}
