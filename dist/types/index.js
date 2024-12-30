@@ -17,3 +17,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./date.type"), exports);
 __exportStar(require("./reqBody.type"), exports);
 __exportStar(require("./user.type"), exports);
+__exportStar(require("./objectId.type"), exports);

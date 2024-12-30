@@ -9,6 +9,10 @@ export type UserToUse = {
     username: string;
     email: string;
     hashPassword: string;
-    role: roles
-    refreshToken: string
+    role: roles;
+    refreshToken: string;
+    assignedClasses: Types.ObjectId[];
+    classes: Types.ObjectId[];
 }
+
+export type UserWithoutSensitiveData = Omit<UserToUse, ('hashPassword'|'refreshToken')>

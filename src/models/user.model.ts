@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { IUser } from "../interfaces";
 import { roles } from "../enums";
+import { emailRegex } from "../utils/regex";
 
 
 const userSchema = new Schema<IUser>({
@@ -12,7 +13,7 @@ const userSchema = new Schema<IUser>({
         type: String,
         required: true,
         unique: true,
-        match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        match: emailRegex,
     },
     hashPassword: {
         type: String,
@@ -30,14 +31,14 @@ const userSchema = new Schema<IUser>({
     assignedClasses: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "classes", 
+            ref: "classes",
         },
     ],
     classes: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: "classes",
-        } 
+        }
     ]
 });
 

@@ -2,7 +2,8 @@ import { Types } from "mongoose";
 import { roles } from "../enums";
 import { User } from "../models";
 import { logger } from "../utils/logger";
-import { UserToUse } from "../types";
+import { CreateUserBody, UserToUse, UserWithoutSensitiveData } from "../types";
+import { getEncryptedPassword } from "../config";
 
 
 
@@ -76,6 +77,38 @@ export const deleteRefreshToken = async (_id: Types.ObjectId, refreshToken: stri
         if (!updatedUser) throw new Error("Can't find the existing user to update");
         await updatedUser.save();
         return;
+    } catch (error: any) {
+        logger.error(error.message);
+        throw new Error(error.message);
+    }
+}
+
+export const insertUser = async (user: CreateUserBody & { role: roles }): Promise<UserWithoutSensitiveData> => {
+    try {
+        const { username, password, email, classes, assignedClasses, role } = user
+        const hashPassword = await getEncryptedPassword(password)
+        const newUser = new User({
+            username,
+            email,
+            hashPassword:hashPassword,
+            role,
+            classes,
+            assignedClasses
+        });
+        await newUser.save();
+
+        const { hashPassword: _, refreshToken: __, ...userWithoutSensitiveData } = newUser.toObject();
+        return userWithoutSensitiveData as UserWithoutSensitiveData;
+    } catch (error: any) {
+        logger.error(error.message);
+        throw new Error(error.message);
+    }
+}
+
+export const userExistsByEmail = async (email: string): Promise<boolean> => {
+    try {
+        const userExists = await User.exists({ email });
+        return userExists ? true : false;
     } catch (error: any) {
         logger.error(error.message);
         throw new Error(error.message);

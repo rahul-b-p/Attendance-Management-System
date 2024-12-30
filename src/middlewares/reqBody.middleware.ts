@@ -13,7 +13,7 @@ export const validateReqBody=(schema:ZodSchema)=>{
         } catch (error) {
             if(error instanceof ZodError){
                 error.errors.map((e)=>{
-                    return next(new BadRequestError(e.message))
+                    return next(new BadRequestError(`Bad Request, ${e.message}`))
                 })
             }
             else next(new InternalServerError('Validation failed'));

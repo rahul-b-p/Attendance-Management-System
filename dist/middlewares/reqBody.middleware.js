@@ -13,7 +13,7 @@ const validateReqBody = (schema) => {
         catch (error) {
             if (error instanceof zod_1.ZodError) {
                 error.errors.map((e) => {
-                    return next(new errors_1.BadRequestError(e.message));
+                    return next(new errors_1.BadRequestError(`Bad Request, ${e.message}`));
                 });
             }
             else

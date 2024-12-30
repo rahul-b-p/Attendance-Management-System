@@ -8,10 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
+const config_1 = require("../config");
 const checkRefreshTokenExistsById = (_id, RefreshToken) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = yield models_1.User.findById({ _id });
@@ -101,3 +113,36 @@ const deleteRefreshToken = (_id, refreshToken) => __awaiter(void 0, void 0, void
     }
 });
 exports.deleteRefreshToken = deleteRefreshToken;
+const insertUser = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { username, password, email, classes, assignedClasses, role } = user;
+        const hashPassword = yield (0, config_1.getEncryptedPassword)(password);
+        const newUser = new models_1.User({
+            username,
+            email,
+            hashPassword: hashPassword,
+            role,
+            classes,
+            assignedClasses
+        });
+        yield newUser.save();
+        const _a = newUser.toObject(), { hashPassword: _, refreshToken: __ } = _a, userWithoutSensitiveData = __rest(_a, ["hashPassword", "refreshToken"]);
+        return userWithoutSensitiveData;
+    }
+    catch (error) {
+        logger_1.logger.error(error.message);
+        throw new Error(error.message);
+    }
+});
+exports.insertUser = insertUser;
+const userExistsByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userExists = yield models_1.User.exists({ email });
+        return userExists ? true : false;
+    }
+    catch (error) {
+        logger_1.logger.error(error.message);
+        throw new Error(error.message);
+    }
+});
+exports.userExistsByEmail = userExistsByEmail;

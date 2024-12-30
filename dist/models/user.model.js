@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const enums_1 = require("../enums");
+const regex_1 = require("../utils/regex");
 const userSchema = new mongoose_1.Schema({
     username: {
         type: String,
@@ -44,7 +45,7 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: true,
         unique: true,
-        match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        match: regex_1.emailRegex,
     },
     hashPassword: {
         type: String,
