@@ -4,7 +4,7 @@ import { logger } from './utils/logger';
 import { connectDB } from './connections';
 import { createDefaultAdmin } from './utils/adminSetup';
 import { accessTokenAuth, ErrorHandler, refreshTokenAuth, validateRole, validateUser } from './middlewares';
-import { adminRouter, attendanceRouter, authRouter, refreshRouter, userRouter } from './routers';
+import { classRouter, attendanceRouter, authRouter, refreshRouter, userRouter } from './routers';
 import { roles } from './enums';
 
 config();
@@ -20,8 +20,8 @@ app.use(express.json());
 app.use('/auth', authRouter);
 app.use('/refresh', refreshTokenAuth, refreshRouter);
 app.use(accessTokenAuth);
-app.use('/admin', validateRole(roles.admin), adminRouter);
 app.use('/user', validateUser, userRouter);
+app.use('/class', validateRole(roles.admin), classRouter);
 app.use('/attendance', attendanceRouter);
 app.use(ErrorHandler);
 

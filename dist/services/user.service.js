@@ -20,7 +20,8 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.addStudentToClass = exports.assignClassForTeachers = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const config_1 = require("../config");
@@ -170,7 +171,7 @@ const updateUserById = (_id, updateUserBody) => __awaiter(void 0, void 0, void 0
             hashPassword,
             role: role ? role : existingUser.role,
             $push: { assignedClasses, classes }
-        });
+        }, { new: true });
         if (!updatedUser)
             return null;
         yield updatedUser.save();
@@ -194,3 +195,35 @@ const DeleteUserById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.DeleteUserById = DeleteUserById;
+const assignClassForTeachers = (teachers, classId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield models_1.User.updateMany({
+            _id: { $in: teachers },
+            role: enums_1.roles.teacher,
+        }, {
+            $addToSet: { assignedClasses: classId },
+        });
+        return;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.assignClassForTeachers = assignClassForTeachers;
+const addStudentToClass = (students, classId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield models_1.User.updateMany({
+            _id: { $in: students },
+            role: enums_1.roles.student,
+        }, {
+            $addToSet: { classes: classId },
+        });
+        return;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.addStudentToClass = addStudentToClass;

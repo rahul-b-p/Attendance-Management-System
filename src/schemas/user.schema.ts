@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { objectIdRegex } from "../utils/regex";
+import { ObjectIdSchema } from "./id.schema";
 
 
 
-const ObjectIdSchema = z.string().regex(objectIdRegex, "Invalid ObjectId");
+
 
 export const CreateUserSchema = z.object({
     username: z.string({message:'Username is Required'}).min(3,"Username is required"),

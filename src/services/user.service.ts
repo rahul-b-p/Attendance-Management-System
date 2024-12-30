@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { roles } from "../enums";
-import { User } from "../models";
+import { Class, User } from "../models";
 import { logger } from "../utils/logger";
 import { CreateUserBody, UpdateUserBody, UserToUse, UserWithoutSensitiveData } from "../types";
 import { getEncryptedPassword } from "../config";
@@ -137,7 +137,7 @@ export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody
             hashPassword,
             role: role ? role : existingUser.role,
             $push: { assignedClasses, classes }
-        });
+        }, { new: true });
         if (!updatedUser) return null;
         await updatedUser.save();
         const { hashPassword: _, refreshToken: __, ...userWithoutSensitiveData } = updatedUser.toObject();
@@ -152,6 +152,42 @@ export const DeleteUserById = async (_id: string): Promise<boolean> => {
     try {
         const DeletedUser = await User.findByIdAndDelete({ _id })
         return DeletedUser ? true : false;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message)
+    }
+}
+
+export const assignClassForTeachers = async (teachers: string[], classId: string): Promise<void> => {
+    try {
+        await User.updateMany(
+            {
+                _id: { $in: teachers },
+                role: roles.teacher,
+            },
+            {
+                $addToSet: { assignedClasses: classId },
+            }
+        );
+        return;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message)
+    }
+}
+
+export const addStudentToClass = async (students: string[], classId: string): Promise<void> => {
+    try {
+        await User.updateMany(
+            {
+                _id: { $in: students },
+                role: roles.student,
+            },
+            {
+                $addToSet: { classes: classId },
+            }
+        );
+        return;
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message)

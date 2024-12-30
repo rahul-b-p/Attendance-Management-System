@@ -18,3 +18,4 @@ __exportStar(require("./date.type"), exports);
 __exportStar(require("./reqBody.type"), exports);
 __exportStar(require("./user.type"), exports);
 __exportStar(require("./objectId.type"), exports);
+__exportStar(require("./class.type"), exports);
