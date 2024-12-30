@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const config_1 = require("../config");
@@ -157,3 +157,29 @@ const findUserByRole = (role) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.findUserByRole = findUserByRole;
+const updateUserById = (_id, updateUserBody) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { username, password, email, assignedClasses, classes, role } = updateUserBody;
+        const existingUser = yield (0, exports.findUserById)(_id);
+        if (!existingUser)
+            return null;
+        const hashPassword = password ? yield (0, config_1.getEncryptedPassword)(password) : existingUser === null || existingUser === void 0 ? void 0 : existingUser.hashPassword;
+        const updatedUser = yield models_1.User.findByIdAndUpdate({ _id }, {
+            username: username ? username : existingUser.username,
+            email: email ? email : existingUser.email,
+            hashPassword,
+            role: role ? role : existingUser.role,
+            $push: { assignedClasses, classes }
+        });
+        if (!updatedUser)
+            return null;
+        yield updatedUser.save();
+        const _a = updatedUser.toObject(), { hashPassword: _, refreshToken: __ } = _a, userWithoutSensitiveData = __rest(_a, ["hashPassword", "refreshToken"]);
+        return userWithoutSensitiveData;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.updateUserById = updateUserById;

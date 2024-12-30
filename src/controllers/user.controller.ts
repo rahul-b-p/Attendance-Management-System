@@ -1,12 +1,13 @@
 import { NextFunction, Response } from "express";
 import { customRequestWithPayload } from "../interfaces";
 import { logger } from "../utils/logger";
-import { BadRequestError, ConflictError, InternalServerError } from "../errors";
-import { CreateUserBody, UserToUse } from "../types";
+import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from "../errors";
+import { CreateUserBody, UpdateUserBody, UserToUse } from "../types";
 import { roles } from "../enums";
-import { findUserById, findUserByRole, insertUser, userExistsByEmail } from "../services";
+import { findRoleById, findUserById, findUserByRole, insertUser, updateUserById, userExistsByEmail } from "../services";
 import { ForbiddenError } from "../errors/forbidden.error";
 import { sendSuccessResponse } from "../utils/successResponse";
+import { isValidObjectId } from "../utils/objectIdValidator";
 
 
 
@@ -44,11 +45,36 @@ export const readUser = async (req: customRequestWithPayload<{ role: string }>, 
         const userId = req.payload?.id as string;
         const owner = await findUserById(userId) as UserToUse;
         if (role == roles.teacher || role == roles.admin) {
-            if (owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'))
+            if (owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
         }
 
         const allUsersWithRole = await findUserByRole(role);
-        res.status(200).json(await sendSuccessResponse(`Fetched all ${role}`,allUsersWithRole))
+        res.status(200).json(await sendSuccessResponse(`Fetched all ${role}`, allUsersWithRole));
+    } catch (error) {
+        logger.error(error);
+        next(new InternalServerError('Something went wrong'));
+    }
+}
+
+export const updateUser = async (req: customRequestWithPayload<{ id: string }, any, UpdateUserBody>, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const isValidId = isValidObjectId(id);
+        if (!isValidId) return next(new BadRequestError('Requested for an inValid Id!'));
+        const existingRole = await findRoleById(id) as roles;
+
+        const userId = req.payload?.id as string;
+        const owner = await findUserById(userId) as UserToUse;
+        if (existingRole == roles.teacher || existingRole == roles.admin) {
+            if (owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+        }
+        const { role } = req.body;
+        if (role && owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+
+        const updatedUser = await updateUserById(id, req.body);
+        if (!updatedUser) return next(new NotFoundError('User not found for Edit'));
+
+        res.status(200).json(await sendSuccessResponse('Updated Succesfully', updatedUser))
     } catch (error) {
         logger.error(error);
         next(new InternalServerError('Something went wrong'));

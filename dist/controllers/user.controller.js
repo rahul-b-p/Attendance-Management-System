@@ -9,13 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.readUser = exports.createUser = void 0;
+exports.updateUser = exports.readUser = exports.createUser = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const enums_1 = require("../enums");
 const services_1 = require("../services");
 const forbidden_error_1 = require("../errors/forbidden.error");
 const successResponse_1 = require("../utils/successResponse");
+const objectIdValidator_1 = require("../utils/objectIdValidator");
 const createUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -63,3 +64,31 @@ const readUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.readUser = readUser;
+const updateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const isValidId = (0, objectIdValidator_1.isValidObjectId)(id);
+        if (!isValidId)
+            return next(new errors_1.BadRequestError('Requested for an inValid Id!'));
+        const existingRole = yield (0, services_1.findRoleById)(id);
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        const owner = yield (0, services_1.findUserById)(userId);
+        if (existingRole == enums_1.roles.teacher || existingRole == enums_1.roles.admin) {
+            if (owner.role !== enums_1.roles.admin)
+                return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
+        }
+        const { role } = req.body;
+        if (role && owner.role !== enums_1.roles.admin)
+            return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
+        const updatedUser = yield (0, services_1.updateUserById)(id, req.body);
+        if (!updatedUser)
+            return next(new errors_1.NotFoundError('User not found for Edit'));
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Updated Succesfully', updatedUser));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Something went wrong'));
+    }
+});
+exports.updateUser = updateUser;

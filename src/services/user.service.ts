@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { roles } from "../enums";
 import { User } from "../models";
 import { logger } from "../utils/logger";
-import { CreateUserBody, UserToUse, UserWithoutSensitiveData } from "../types";
+import { CreateUserBody, UpdateUserBody, UserToUse, UserWithoutSensitiveData } from "../types";
 import { getEncryptedPassword } from "../config";
 
 
@@ -115,12 +115,35 @@ export const userExistsByEmail = async (email: string): Promise<boolean> => {
     }
 }
 
-export const findUserByRole = async (role: roles):Promise<UserWithoutSensitiveData[]> => {
+export const findUserByRole = async (role: roles): Promise<UserWithoutSensitiveData[]> => {
     try {
         const users = await User.find({ role }).select("-hashPassword -refreshToken");
         return users as UserWithoutSensitiveData[]
-    } catch (error:any) {
+    } catch (error: any) {
         logger.error(error)
+        throw new Error(error.message)
+    }
+}
+
+export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody): Promise<UserWithoutSensitiveData | null> => {
+    try {
+        const { username, password, email, assignedClasses, classes, role } = updateUserBody;
+        const existingUser = await findUserById(_id);
+        if (!existingUser) return null;
+        const hashPassword = password ? await getEncryptedPassword(password) : existingUser?.hashPassword
+        const updatedUser = await User.findByIdAndUpdate({ _id }, {
+            username: username ? username : existingUser.username,
+            email: email ? email : existingUser.email,
+            hashPassword,
+            role: role ? role : existingUser.role,
+            $push: { assignedClasses, classes }
+        });
+        if (!updatedUser) return null
+        await updatedUser.save();
+        const { hashPassword: _, refreshToken: __, ...userWithoutSensitiveData } = updatedUser.toObject();
+        return userWithoutSensitiveData as UserWithoutSensitiveData;
+    } catch (error: any) {
+        logger.error(error);
         throw new Error(error.message)
     }
 }

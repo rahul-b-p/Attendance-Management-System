@@ -15,4 +15,4 @@ export type UserToUse = {
     classes: Types.ObjectId[];
 }
 
-export type UserWithoutSensitiveData = Omit<UserToUse, ('hashPassword'|'refreshToken')>
+export type UserWithoutSensitiveData = Omit<UserToUse, ('hashPassword'|'refreshToken')>;

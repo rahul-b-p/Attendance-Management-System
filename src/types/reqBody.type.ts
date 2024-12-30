@@ -1,3 +1,4 @@
+import { roles } from "../enums";
 import { ObjectIdString } from "./objectId.type";
 
 
@@ -13,3 +14,5 @@ export type CreateUserBody = {
     assignedClasses: ObjectIdString[]
     classes: ObjectIdString[]
 }
+
+export type UpdateUserBody = Partial<CreateUserBody> & {role?:roles};
