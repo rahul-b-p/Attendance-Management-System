@@ -138,10 +138,20 @@ export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody
             role: role ? role : existingUser.role,
             $push: { assignedClasses, classes }
         });
-        if (!updatedUser) return null
+        if (!updatedUser) return null;
         await updatedUser.save();
         const { hashPassword: _, refreshToken: __, ...userWithoutSensitiveData } = updatedUser.toObject();
         return userWithoutSensitiveData as UserWithoutSensitiveData;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const DeleteUserById = async (_id: string): Promise<boolean> => {
+    try {
+        const DeletedUser = await User.findByIdAndDelete({ _id })
+        return DeletedUser ? true : false;
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message)

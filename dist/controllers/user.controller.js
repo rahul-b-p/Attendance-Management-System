@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUser = exports.readUser = exports.createUser = void 0;
+exports.deleteUser = exports.updateUser = exports.readUser = exports.createUser = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const enums_1 = require("../enums");
@@ -83,7 +83,7 @@ const updateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
         const updatedUser = yield (0, services_1.updateUserById)(id, req.body);
         if (!updatedUser)
-            return next(new errors_1.NotFoundError('User not found for Edit'));
+            return next(new errors_1.NotFoundError('User not found with given Id'));
         res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Updated Succesfully', updatedUser));
     }
     catch (error) {
@@ -92,3 +92,28 @@ const updateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.updateUser = updateUser;
+const deleteUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const isValidId = (0, objectIdValidator_1.isValidObjectId)(id);
+        if (!isValidId)
+            return next(new errors_1.BadRequestError('Requested for an inValid Id!'));
+        const existingRole = yield (0, services_1.findRoleById)(id);
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        const owner = yield (0, services_1.findUserById)(userId);
+        if (existingRole == enums_1.roles.teacher || existingRole == enums_1.roles.admin) {
+            if (owner.role !== enums_1.roles.admin)
+                return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
+        }
+        const isDeleted = yield (0, services_1.DeleteUserById)(id);
+        if (!isDeleted)
+            return next(new errors_1.NotFoundError('User not found with given Id'));
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('User Deleted Successfully'));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Something went wrong'));
+    }
+});
+exports.deleteUser = deleteUser;

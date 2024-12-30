@@ -16,3 +16,6 @@ router.get('/:role', validateRole(roles.admin, roles.teacher), userController.re
 
 // update user
 router.put('/:id', validateRole(roles.admin, roles.teacher), validateReqBody(updatedUserSchema), userController.updateUser);
+
+// delete user
+router.delete('/:id',validateRole(roles.admin,roles.student),userController.deleteUser);

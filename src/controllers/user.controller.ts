@@ -4,7 +4,7 @@ import { logger } from "../utils/logger";
 import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from "../errors";
 import { CreateUserBody, UpdateUserBody, UserToUse } from "../types";
 import { roles } from "../enums";
-import { findRoleById, findUserById, findUserByRole, insertUser, updateUserById, userExistsByEmail } from "../services";
+import { DeleteUserById, findRoleById, findUserById, findUserByRole, insertUser, updateUserById, userExistsByEmail } from "../services";
 import { ForbiddenError } from "../errors/forbidden.error";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { isValidObjectId } from "../utils/objectIdValidator";
@@ -72,9 +72,32 @@ export const updateUser = async (req: customRequestWithPayload<{ id: string }, a
         if (role && owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
 
         const updatedUser = await updateUserById(id, req.body);
-        if (!updatedUser) return next(new NotFoundError('User not found for Edit'));
+        if (!updatedUser) return next(new NotFoundError('User not found with given Id'));
 
         res.status(200).json(await sendSuccessResponse('Updated Succesfully', updatedUser))
+    } catch (error) {
+        logger.error(error);
+        next(new InternalServerError('Something went wrong'));
+    }
+}
+
+export const deleteUser = async (req: customRequestWithPayload<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const isValidId = isValidObjectId(id);
+        if (!isValidId) return next(new BadRequestError('Requested for an inValid Id!'));
+        const existingRole = await findRoleById(id) as roles;
+
+        const userId = req.payload?.id as string;
+        const owner = await findUserById(userId) as UserToUse;
+        if (existingRole == roles.teacher || existingRole == roles.admin) {
+            if (owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+        }
+
+        const isDeleted = await DeleteUserById(id);
+        if (!isDeleted) return next(new NotFoundError('User not found with given Id'));
+
+        res.status(200).json(await sendSuccessResponse('User Deleted Successfully'));
     } catch (error) {
         logger.error(error);
         next(new InternalServerError('Something went wrong'));
