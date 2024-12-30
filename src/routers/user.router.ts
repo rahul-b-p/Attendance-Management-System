@@ -10,3 +10,4 @@ export const router = Router();
 
 
 router.post('/:role', validateRole(roles.admin, roles.teacher), validateReqBody(CreateUserSchema), userController.createUser);
+router.get('/:role',validateRole(roles.admin,roles.teacher),userController.readUser);

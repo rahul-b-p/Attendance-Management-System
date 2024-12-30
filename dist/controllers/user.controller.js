@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUser = void 0;
+exports.readUser = exports.createUser = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const enums_1 = require("../enums");
@@ -42,3 +42,24 @@ const createUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.createUser = createUser;
+const readUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { role } = req.params;
+        if (role !== enums_1.roles.admin && role !== enums_1.roles.teacher && role !== enums_1.roles.student)
+            return next(new errors_1.BadRequestError('Bad request, requested to create user with inValid role'));
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        const owner = yield (0, services_1.findUserById)(userId);
+        if (role == enums_1.roles.teacher || role == enums_1.roles.admin) {
+            if (owner.role !== enums_1.roles.admin)
+                return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
+        }
+        const allUsersWithRole = yield (0, services_1.findUserByRole)(role);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)(`Fetched all ${role}`, allUsersWithRole));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Something went wrong'));
+    }
+});
+exports.readUser = readUser;

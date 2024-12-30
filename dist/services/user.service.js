@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const config_1 = require("../config");
@@ -146,3 +146,14 @@ const userExistsByEmail = (email) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.userExistsByEmail = userExistsByEmail;
+const findUserByRole = (role) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const users = yield models_1.User.find({ role }).select("-hashPassword -refreshToken");
+        return users;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.findUserByRole = findUserByRole;

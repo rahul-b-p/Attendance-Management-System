@@ -90,7 +90,7 @@ export const insertUser = async (user: CreateUserBody & { role: roles }): Promis
         const newUser = new User({
             username,
             email,
-            hashPassword:hashPassword,
+            hashPassword: hashPassword,
             role,
             classes,
             assignedClasses
@@ -112,5 +112,15 @@ export const userExistsByEmail = async (email: string): Promise<boolean> => {
     } catch (error: any) {
         logger.error(error.message);
         throw new Error(error.message);
+    }
+}
+
+export const findUserByRole = async (role: roles):Promise<UserWithoutSensitiveData[]> => {
+    try {
+        const users = await User.find({ role }).select("-hashPassword -refreshToken");
+        return users as UserWithoutSensitiveData[]
+    } catch (error:any) {
+        logger.error(error)
+        throw new Error(error.message)
     }
 }
