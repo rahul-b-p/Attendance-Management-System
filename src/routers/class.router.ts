@@ -26,3 +26,4 @@ router.put('/:classId/remove-teacher', validateRole(roles.admin), validateReqBod
 router.put('/:classId/remove-student', validateRole(roles.admin, roles.teacher), validateReqBody(StudentSchema), classController.removeStudents);
 
 // delete class
+router.delete('/:classId', validateRole(roles.admin), classController.deleteClass);

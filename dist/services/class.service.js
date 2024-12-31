@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
+exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const user_service_1 = require("./user.service");
@@ -112,7 +112,7 @@ const removeTeachersFromClass = (_id, teachers) => __awaiter(void 0, void 0, voi
     try {
         yield Promise.all([
             models_1.Class.updateOne({ _id }, { $pull: { teachers: { $in: teachers } } }),
-            (0, user_service_1.removeFromAssignClasses)(teachers, _id)
+            (0, user_service_1.removeIdFromAssignClasses)(teachers, _id)
         ]);
         const updatedClass = yield models_1.Class.findById(_id).lean();
         return toClassToUse(updatedClass);
@@ -127,7 +127,7 @@ const removeStudentFromClass = (_id, students) => __awaiter(void 0, void 0, void
     try {
         yield Promise.all([
             models_1.Class.updateOne({ _id }, { $pull: { students: { $in: students } } }),
-            (0, user_service_1.removeFromClasses)(students, _id)
+            (0, user_service_1.removeIdFromClasses)(students, _id)
         ]);
         const updatedClass = yield models_1.Class.findById(_id).lean();
         return toClassToUse(updatedClass);
@@ -138,3 +138,21 @@ const removeStudentFromClass = (_id, students) => __awaiter(void 0, void 0, void
     }
 });
 exports.removeStudentFromClass = removeStudentFromClass;
+const deleteClassById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const existingClass = yield (0, exports.findClassById)(_id);
+        if (!existingClass)
+            return false;
+        yield Promise.all([
+            models_1.Class.deleteOne({ _id }),
+            (0, user_service_1.removeIdFromAssignClasses)(existingClass.teachers, _id),
+            (0, user_service_1.removeIdFromClasses)(existingClass.students, _id)
+        ]);
+        return true;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.deleteClassById = deleteClassById;

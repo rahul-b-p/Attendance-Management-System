@@ -1,7 +1,7 @@
 import { Class } from "../models";
 import { ClassToUse, ClassWithUserData, CreateClassBody } from "../types";
 import { logger } from "../utils/logger";
-import { addToAssignClasses, addToClasses, findUsersInClass, removeFromAssignClasses, removeFromClasses } from "./user.service";
+import { addToAssignClasses, addToClasses, findUsersInClass, removeIdFromAssignClasses, removeIdFromClasses } from "./user.service";
 
 
 const toClassToUse = (classData: any): ClassToUse => {
@@ -99,7 +99,7 @@ export const removeTeachersFromClass = async (_id: string, teachers: string[]): 
     try {
         await Promise.all([
             Class.updateOne({ _id }, { $pull: { teachers: { $in: teachers } } }),
-            removeFromAssignClasses(teachers, _id)
+            removeIdFromAssignClasses(teachers, _id)
         ]);
         const updatedClass = await Class.findById(_id).lean();
         return toClassToUse(updatedClass);
@@ -113,10 +113,27 @@ export const removeStudentFromClass = async (_id: string, students: string[]): P
     try {
         await Promise.all([
             Class.updateOne({ _id }, { $pull: { students: { $in: students } } }),
-            removeFromClasses(students, _id)
+            removeIdFromClasses(students, _id)
         ]);
         const updatedClass = await Class.findById(_id).lean();
         return toClassToUse(updatedClass);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const deleteClassById = async (_id: string): Promise<boolean> => {
+    try {
+        const existingClass = await findClassById(_id);
+        if(!existingClass) return false;
+
+        await Promise.all([
+            Class.deleteOne({_id}),
+            removeIdFromAssignClasses(existingClass.teachers,_id),
+            removeIdFromClasses(existingClass.students,_id)
+        ]);
+        return true;
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message);

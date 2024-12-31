@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeStudents = exports.removeTeachers = exports.addToClass = exports.assignClass = exports.readAllClasses = exports.createClass = void 0;
+exports.deleteClass = exports.removeStudents = exports.removeTeachers = exports.addToClass = exports.assignClass = exports.readAllClasses = exports.createClass = void 0;
 const errors_1 = require("../errors");
 const logger_1 = require("../utils/logger");
 const services_1 = require("../services");
@@ -198,3 +198,20 @@ const removeStudents = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.removeStudents = removeStudents;
+const deleteClass = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { classId } = req.params;
+        const isValidClassId = (0, objectIdValidator_1.isValidObjectId)(classId);
+        if (!isValidClassId)
+            return next(new errors_1.BadRequestError('Requested with an Invalid Class Id'));
+        const isDeleted = yield (0, services_1.deleteClassById)(classId);
+        if (!isDeleted)
+            return next(new errors_1.NotFoundError('Requested class not found!'));
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Class Deleted Successfully'));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Something went wrong'));
+    }
+});
+exports.deleteClass = deleteClass;

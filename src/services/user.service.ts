@@ -211,7 +211,7 @@ export const findUsersInClass = async (userIds: string[]): Promise<UserToShowInC
     }
 };
 
-export const removeFromAssignClasses = async (teachers: string[], classId: string): Promise<void> => {
+export const removeIdFromAssignClasses = async (teachers: string[], classId: string): Promise<void> => {
     try {
 
         const updatedUser = await User.updateMany(
@@ -230,7 +230,7 @@ export const removeFromAssignClasses = async (teachers: string[], classId: strin
     }
 }
 
-export const removeFromClasses = async (students: string[], classId: string): Promise<void> => {
+export const removeIdFromClasses = async (students: string[], classId: string): Promise<void> => {
     try {
         const updatedUser = await User.updateMany(
             {

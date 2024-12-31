@@ -3,7 +3,7 @@ import { customRequestWithPayload } from "../interfaces";
 import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from "../errors";
 import { logger } from "../utils/logger";
 import { CreateClassBody } from "../types";
-import { addStudentToClass, assignTeacherToClass, findAllClass, findClassById, findRoleById, findUserById, insertClass, removeStudentFromClass, removeTeachersFromClass } from "../services";
+import { addStudentToClass, assignTeacherToClass, deleteClassById, findAllClass, findClassById, findRoleById, findUserById, insertClass, removeStudentFromClass, removeTeachersFromClass } from "../services";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { roles } from "../enums";
 import { isValidObjectId } from "../utils/objectIdValidator";
@@ -153,7 +153,7 @@ export const removeTeachers = async (req: customRequestWithPayload<{ classId: st
         const existingTeacherIds = existingClass.teachers.map(teacher => teacher.toString());
         const repeatedTeachers = teacherId.filter(id => existingTeacherIds.includes(id));
 
-        if(repeatedTeachers.length<=0) return next(new NotFoundError('Requested teachers are not found in given class'))
+        if (repeatedTeachers.length <= 0) return next(new NotFoundError('Requested teachers are not found in given class'))
         if (repeatedTeachers.length !== teacherId.length) {
             return next(new NotFoundError(`except following teacher(s),no others are not found in given class: ${repeatedTeachers.join(', ')}`));
         }
@@ -187,10 +187,10 @@ export const removeStudents = async (req: customRequestWithPayload<{ classId: st
         if (repeatedStudents.length <= 0) {
             return next(new NotFoundError('Requested Students are not found in given class'));
         }
-        if(repeatedStudents.length!==studentId.length){
+        if (repeatedStudents.length !== studentId.length) {
             return next(new NotFoundError(`Except following student(s), no others are not found on given this class: ${repeatedStudents.join(', ')}`));
         }
-        
+
 
         const updatedClass = await removeStudentFromClass(classId, studentId);
         res.status(200).json(await sendSuccessResponse('Updated Successfully', updatedClass));
@@ -198,6 +198,21 @@ export const removeStudents = async (req: customRequestWithPayload<{ classId: st
         if (error instanceof NotFoundError) return next(error);
         else if (error instanceof ForbiddenError) return next(error);
 
+        logger.error(error);
+        next(new InternalServerError('Something went wrong'));
+    }
+}
+
+export const deleteClass = async (req: customRequestWithPayload<{ classId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const { classId } = req.params;
+        const isValidClassId = isValidObjectId(classId);
+        if (!isValidClassId) return next(new BadRequestError('Requested with an Invalid Class Id'));
+
+        const isDeleted = await deleteClassById(classId);
+        if (!isDeleted) return next(new NotFoundError('Requested class not found!'));
+        res.status(200).json(await sendSuccessResponse('Class Deleted Successfully'));
+    } catch (error) {
         logger.error(error);
         next(new InternalServerError('Something went wrong'));
     }

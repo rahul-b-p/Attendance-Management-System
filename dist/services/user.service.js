@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeFromClasses = exports.removeFromAssignClasses = exports.findUsersInClass = exports.addToClasses = exports.addToAssignClasses = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.removeIdFromClasses = exports.removeIdFromAssignClasses = exports.findUsersInClass = exports.addToClasses = exports.addToAssignClasses = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -243,7 +243,7 @@ const findUsersInClass = (userIds) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.findUsersInClass = findUsersInClass;
-const removeFromAssignClasses = (teachers, classId) => __awaiter(void 0, void 0, void 0, function* () {
+const removeIdFromAssignClasses = (teachers, classId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const updatedUser = yield models_1.User.updateMany({
             _id: { $in: teachers },
@@ -258,8 +258,8 @@ const removeFromAssignClasses = (teachers, classId) => __awaiter(void 0, void 0,
         throw new Error(error.message);
     }
 });
-exports.removeFromAssignClasses = removeFromAssignClasses;
-const removeFromClasses = (students, classId) => __awaiter(void 0, void 0, void 0, function* () {
+exports.removeIdFromAssignClasses = removeIdFromAssignClasses;
+const removeIdFromClasses = (students, classId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const updatedUser = yield models_1.User.updateMany({
             _id: { $in: students },
@@ -274,4 +274,4 @@ const removeFromClasses = (students, classId) => __awaiter(void 0, void 0, void 
         throw new Error(error.message);
     }
 });
-exports.removeFromClasses = removeFromClasses;
+exports.removeIdFromClasses = removeIdFromClasses;

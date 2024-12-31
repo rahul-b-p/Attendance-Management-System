@@ -20,3 +20,4 @@ exports.router.put('/:classId/remove-teacher', (0, middlewares_1.validateRole)(e
 // remove student from class
 exports.router.put('/:classId/remove-student', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), (0, middlewares_1.validateReqBody)(schemas_1.StudentSchema), controllers_1.classController.removeStudents);
 // delete class
+exports.router.delete('/:classId', (0, middlewares_1.validateRole)(enums_1.roles.admin), controllers_1.classController.deleteClass);
