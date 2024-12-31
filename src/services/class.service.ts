@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+import { roles } from "../enums";
 import { Class } from "../models";
 import { ClassToUse, ClassWithUserData, CreateClassBody } from "../types";
 import { logger } from "../utils/logger";
@@ -126,14 +128,36 @@ export const removeStudentFromClass = async (_id: string, students: string[]): P
 export const deleteClassById = async (_id: string): Promise<boolean> => {
     try {
         const existingClass = await findClassById(_id);
-        if(!existingClass) return false;
+        if (!existingClass) return false;
 
         await Promise.all([
-            Class.deleteOne({_id}),
-            removeIdFromAssignClasses(existingClass.teachers,_id),
-            removeIdFromClasses(existingClass.students,_id)
+            Class.deleteOne({ _id }),
+            removeIdFromAssignClasses(existingClass.teachers, _id),
+            removeIdFromClasses(existingClass.students, _id)
         ]);
         return true;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const removeUserIdFromAllClass = async (_id: string, role: roles, classes?: Types.ObjectId[], assignedClasses?: Types.ObjectId[]): Promise<void> => {
+    try {
+        const classIds = [...new Set([...(classes || []), ...(assignedClasses || [])])];
+
+        if (classIds.length === 0) {
+            throw new Error('No classes specified for removal.');
+        }
+
+        const updateField = role == roles.student ? 'students' : 'teachers';
+
+        await Class.updateMany(
+            { _id: { $in: classIds } },
+            { $pull: { [updateField]: _id } }
+        );
+
+        return;
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message);

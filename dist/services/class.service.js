@@ -9,7 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
+exports.removeUserIdFromAllClass = exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
+const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const user_service_1 = require("./user.service");
@@ -156,3 +157,19 @@ const deleteClassById = (_id) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.deleteClassById = deleteClassById;
+const removeUserIdFromAllClass = (_id, role, classes, assignedClasses) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const classIds = [...new Set([...(classes || []), ...(assignedClasses || [])])];
+        if (classIds.length === 0) {
+            throw new Error('No classes specified for removal.');
+        }
+        const updateField = role == enums_1.roles.student ? 'students' : 'teachers';
+        yield models_1.Class.updateMany({ _id: { $in: classIds } }, { $pull: { [updateField]: _id } });
+        return;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.removeUserIdFromAllClass = removeUserIdFromAllClass;

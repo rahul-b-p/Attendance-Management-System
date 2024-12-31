@@ -25,6 +25,7 @@ const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const config_1 = require("../config");
+const class_service_1 = require("./class.service");
 const convertUserToUseInClassData = (userData) => {
     return {
         _id: userData._id,
@@ -191,8 +192,14 @@ const updateUserById = (_id, updateUserBody) => __awaiter(void 0, void 0, void 0
 exports.updateUserById = updateUserById;
 const DeleteUserById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const DeletedUser = yield models_1.User.findByIdAndDelete({ _id });
-        return DeletedUser ? true : false;
+        const existingUser = yield (0, exports.findUserById)(_id);
+        if (!existingUser)
+            return false;
+        yield Promise.all([
+            models_1.User.findByIdAndDelete({ _id }),
+            (0, class_service_1.removeUserIdFromAllClass)(_id, existingUser.role, existingUser.classes, existingUser.assignedClasses)
+        ]);
+        return true;
     }
     catch (error) {
         logger_1.logger.error(error);

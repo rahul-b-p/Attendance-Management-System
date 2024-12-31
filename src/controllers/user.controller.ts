@@ -96,7 +96,6 @@ export const deleteUser = async (req: customRequestWithPayload<{ id: string }>, 
 
         const isDeleted = await DeleteUserById(id);
         if (!isDeleted) return next(new NotFoundError('User not found with given Id'));
-
         res.status(200).json(await sendSuccessResponse('User Deleted Successfully'));
     } catch (error) {
         logger.error(error);

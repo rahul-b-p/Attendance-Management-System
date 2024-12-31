@@ -4,6 +4,7 @@ import { User } from "../models";
 import { logger } from "../utils/logger";
 import { CreateUserBody, UpdateUserBody, UserToShowInClass, UserToUse, UserWithoutSensitiveData } from "../types";
 import { getEncryptedPassword } from "../config";
+import { removeUserIdFromAllClass } from "./class.service";
 
 
 const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
@@ -156,8 +157,13 @@ export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody
 
 export const DeleteUserById = async (_id: string): Promise<boolean> => {
     try {
-        const DeletedUser = await User.findByIdAndDelete({ _id });
-        return DeletedUser ? true : false;
+        const existingUser = await findUserById(_id);
+        if(!existingUser) return false;
+        await Promise.all([
+            User.findByIdAndDelete({ _id }),
+            removeUserIdFromAllClass(_id,existingUser.role,existingUser.classes,existingUser.assignedClasses)
+        ])
+        return true;
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message);
