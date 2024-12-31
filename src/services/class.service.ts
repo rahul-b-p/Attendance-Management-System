@@ -10,7 +10,7 @@ export const insertClass = async (userId: string, classBody: CreateClassBody): P
     try {
         let { className, students, teachers } = classBody;
         teachers = teachers ? [...teachers, userId] : [userId]
-        students = students ?? [];
+        students = students ? [...students] : [];
         const newClass = new Class({
             className, students, teachers
         });

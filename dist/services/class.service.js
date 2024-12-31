@@ -17,7 +17,7 @@ const insertClass = (userId, classBody) => __awaiter(void 0, void 0, void 0, fun
     try {
         let { className, students, teachers } = classBody;
         teachers = teachers ? [...teachers, userId] : [userId];
-        students = students !== null && students !== void 0 ? students : [];
+        students = students ? [...students] : [];
         const newClass = new models_1.Class({
             className, students, teachers
         });

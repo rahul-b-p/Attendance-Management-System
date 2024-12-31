@@ -200,7 +200,6 @@ const addToAssignClasses = (teachers, classId) => __awaiter(void 0, void 0, void
         }, {
             $addToSet: { assignedClasses: classId },
         });
-        logger_1.logger.info(updatedUser);
         return;
     }
     catch (error) {

@@ -13,27 +13,27 @@ import { roles } from "../enums";
 export const createClass = async (req: customRequestWithPayload<{}, any, CreateClassBody>, res: Response, next: NextFunction) => {
     try {
         const userId = req.payload?.id as string;
-        const { students, teachers } = req.body
+        let { students, teachers } = req.body
 
-        if (students) (
-            students.map(async (item) => {
-                const isValidId = isValidObjectId(item);
-                if (!isValidId) return next(new BadRequestError(`"${item}" is an Invalid Id!`));
+        if (students) {
+            students = Array.isArray(students) ? students : [students];
 
+            await Promise.all(students.map(async (item) => {
                 const existingStudent = await findUserById(item);
-                if (!existingStudent || existingStudent.role !== roles.student) return next(new NotFoundError(`not found any student with given id: "${item}"`));
-            })
-        )
+                if (!existingStudent || existingStudent.role !== roles.student)
+                    return next(new NotFoundError(`No student found with the given ID: "${item}"`));
+            }));
+        }
 
-        if (teachers) (
-            teachers.map(async (item) => {
-                const isValidId = isValidObjectId(item);
-                if (!isValidId) return next(new BadRequestError(`"${item}" is an Invalid Id!`));
+        if (teachers) {
+            teachers = Array.isArray(teachers) ? teachers : [teachers];
 
-                const existngTeacher = await findUserById(item);
-                if (!existngTeacher || existngTeacher.role == roles.student) return next(new NotFoundError(`not found any teacher with given id: "${item}"`));
-            })
-        )
+            await Promise.all(teachers.map(async (item) => {
+                const existingTeacher = await findUserById(item);
+                if (!existingTeacher || existingTeacher.role == roles.student)
+                    return next(new NotFoundError(`No teacher or admin found with the given ID: "${item}"`));
+            }));
+        }
 
         const newClass = await insertClass(userId, req.body);
         res.status(201).json(await sendSuccessResponse('New Class created with given data', newClass));

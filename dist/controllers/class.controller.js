@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createClass = void 0;
 const errors_1 = require("../errors");
 const logger_1 = require("../utils/logger");
-const objectIdValidator_1 = require("../utils/objectIdValidator");
 const services_1 = require("../services");
 const successResponse_1 = require("../utils/successResponse");
 const enums_1 = require("../enums");
@@ -20,25 +19,23 @@ const createClass = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     var _a;
     try {
         const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
-        const { students, teachers } = req.body;
-        if (students)
-            (students.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-                const isValidId = (0, objectIdValidator_1.isValidObjectId)(item);
-                if (!isValidId)
-                    return next(new errors_1.BadRequestError(`"${item}" is an Invalid Id!`));
+        let { students, teachers } = req.body;
+        if (students) {
+            students = Array.isArray(students) ? students : [students];
+            yield Promise.all(students.map((item) => __awaiter(void 0, void 0, void 0, function* () {
                 const existingStudent = yield (0, services_1.findUserById)(item);
                 if (!existingStudent || existingStudent.role !== enums_1.roles.student)
-                    return next(new errors_1.NotFoundError(`not found any student with given id: "${item}"`));
+                    return next(new errors_1.NotFoundError(`No student found with the given ID: "${item}"`));
             })));
-        if (teachers)
-            (teachers.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-                const isValidId = (0, objectIdValidator_1.isValidObjectId)(item);
-                if (!isValidId)
-                    return next(new errors_1.BadRequestError(`"${item}" is an Invalid Id!`));
-                const existngTeacher = yield (0, services_1.findUserById)(item);
-                if (!existngTeacher || existngTeacher.role == enums_1.roles.student)
-                    return next(new errors_1.NotFoundError(`not found any teacher with given id: "${item}"`));
+        }
+        if (teachers) {
+            teachers = Array.isArray(teachers) ? teachers : [teachers];
+            yield Promise.all(teachers.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+                const existingTeacher = yield (0, services_1.findUserById)(item);
+                if (!existingTeacher || existingTeacher.role == enums_1.roles.student)
+                    return next(new errors_1.NotFoundError(`No teacher or admin found with the given ID: "${item}"`));
             })));
+        }
         const newClass = yield (0, services_1.insertClass)(userId, req.body);
         res.status(201).json(yield (0, successResponse_1.sendSuccessResponse)('New Class created with given data', newClass));
     }

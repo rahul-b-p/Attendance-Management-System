@@ -167,7 +167,6 @@ export const addToAssignClasses = async (teachers: string[], classId: string): P
                 $addToSet: { assignedClasses: classId },
             }
         );
-        logger.info(updatedUser)
         return;
     } catch (error: any) {
         logger.error(error);
