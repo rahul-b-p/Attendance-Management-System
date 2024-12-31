@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
+exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const user_service_1 = require("./user.service");
@@ -93,3 +93,18 @@ const findClassById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.findClassById = findClassById;
+const addStudentToClass = (_id, students) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield Promise.all([
+            models_1.Class.updateOne({ _id }, { $addToSet: { students: { $each: students } } }),
+            (0, user_service_1.addToClasses)(students, _id)
+        ]);
+        const updatedClass = yield models_1.Class.findById(_id).lean();
+        return toClassToUse(updatedClass);
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.addStudentToClass = addStudentToClass;

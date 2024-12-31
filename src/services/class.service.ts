@@ -80,3 +80,17 @@ export const findClassById = async (_id: string): Promise<ClassToUse | null> => 
         throw new Error(error.message);
     }
 }
+
+export const addStudentToClass = async (_id: string, students: string[]): Promise<ClassToUse> => {
+    try {
+        await Promise.all([
+            Class.updateOne({ _id }, { $addToSet: { students: { $each: students } } }),
+            addToClasses(students, _id)
+        ]);
+        const updatedClass = await Class.findById(_id).lean();
+        return toClassToUse(updatedClass);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
