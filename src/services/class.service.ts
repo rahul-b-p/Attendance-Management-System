@@ -1,7 +1,7 @@
 import { Class } from "../models";
 import { ClassToUse, ClassWithUserData, CreateClassBody } from "../types";
 import { logger } from "../utils/logger";
-import { addToAssignClasses, addToClasses, findUsersInClass } from "./user.service";
+import { addToAssignClasses, addToClasses, findUsersInClass, removeFromAssignClasses } from "./user.service";
 
 
 const toClassToUse = (classData: any): ClassToUse => {
@@ -86,6 +86,20 @@ export const addStudentToClass = async (_id: string, students: string[]): Promis
         await Promise.all([
             Class.updateOne({ _id }, { $addToSet: { students: { $each: students } } }),
             addToClasses(students, _id)
+        ]);
+        const updatedClass = await Class.findById(_id).lean();
+        return toClassToUse(updatedClass);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const removeTeachersFromClass = async (_id: string, teachers: string[]): Promise<ClassToUse> => {
+    try {
+        await Promise.all([
+            Class.updateOne({ _id }, { $pull: { teachers: { $in: teachers } } }),
+            removeFromAssignClasses(teachers, _id)
         ]);
         const updatedClass = await Class.findById(_id).lean();
         return toClassToUse(updatedClass);
