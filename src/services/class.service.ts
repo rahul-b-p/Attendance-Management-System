@@ -23,7 +23,7 @@ export const insertClass = async (userId: string, classBody: CreateClassBody): P
         return newClass as ClassToUse
     } catch (error: any) {
         logger.error(error);
-        throw new Error(error.message)
+        throw new Error(error.message);
     }
 }
 
@@ -53,6 +53,31 @@ export const findAllClass = async (): Promise<ClassWithUserData[]> => {
         return transformedClass;
     } catch (error: any) {
         logger.error(error);
-        throw new Error(error.message)
+        throw new Error(error.message);
+    }
+}
+
+export const assignTeacherToClass = async (_id: string, teachers: string[]): Promise<ClassToUse> => {
+    try {
+        await Promise.all([
+            Class.updateOne({ _id }, { $addToSet: { teachers: { $each: teachers } } }),
+            addToAssignClasses(teachers, _id)
+        ]);
+        const updatedClass = await Class.findById(_id).lean();
+        return toClassToUse(updatedClass);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const findClassById = async (_id: string): Promise<ClassToUse | null> => {
+    try {
+        const existingClass = await Class.findById({ _id })
+        if (!existingClass) return null;
+        else return toClassToUse(existingClass);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
     }
 }

@@ -9,12 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.readAllClasses = exports.createClass = void 0;
+exports.assignClass = exports.readAllClasses = exports.createClass = void 0;
 const errors_1 = require("../errors");
 const logger_1 = require("../utils/logger");
 const services_1 = require("../services");
 const successResponse_1 = require("../utils/successResponse");
 const enums_1 = require("../enums");
+const objectIdValidator_1 = require("../utils/objectIdValidator");
+const forbidden_error_1 = require("../errors/forbidden.error");
 const createClass = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -61,3 +63,39 @@ const readAllClasses = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.readAllClasses = readAllClasses;
+const assignClass = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { classId } = req.params;
+        const isValidClassId = (0, objectIdValidator_1.isValidObjectId)(classId);
+        if (!isValidClassId)
+            return next(new errors_1.BadRequestError('Requested with an Invalid Class Id'));
+        const existingClass = yield (0, services_1.findClassById)(classId);
+        if (!existingClass)
+            return next(new errors_1.NotFoundError('Requested class not found!'));
+        let { teacherId } = req.body;
+        teacherId = Array.isArray(teacherId) ? teacherId : [teacherId];
+        yield Promise.all(teacherId.map((id) => __awaiter(void 0, void 0, void 0, function* () {
+            const userRoleFromTeacherId = yield (0, services_1.findRoleById)(id);
+            if (!userRoleFromTeacherId)
+                throw new errors_1.NotFoundError(`teacher with id: ${id} not found`);
+            else if (userRoleFromTeacherId == enums_1.roles.student)
+                throw new forbidden_error_1.ForbiddenError(`You have no permission to assign class for id: ${id}`);
+        })));
+        const existingTeacherIds = existingClass.teachers.map(teacher => teacher.toString());
+        const repeatedTeachers = teacherId.filter(id => existingTeacherIds.includes(id));
+        if (repeatedTeachers.length > 0) {
+            return next(new errors_1.ConflictError(`The following teacher(s) are already assigned to this class: ${repeatedTeachers.join(', ')}`));
+        }
+        const updatedClass = yield (0, services_1.assignTeacherToClass)(classId, teacherId);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Updated Successfully', updatedClass));
+    }
+    catch (error) {
+        if (error instanceof errors_1.NotFoundError)
+            return next(error);
+        else if (error instanceof forbidden_error_1.ForbiddenError)
+            return next(error);
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Something went wrong'));
+    }
+});
+exports.assignClass = assignClass;

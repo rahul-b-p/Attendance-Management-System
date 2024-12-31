@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateReqBody, validateRole } from "../middlewares";
-import { CreateClassSchema } from "../schemas/class.schema";
+import { assignTeacherSchema, CreateClassSchema } from "../schemas";
 import { classController } from "../controllers";
 import { roles } from "../enums";
 
@@ -12,3 +12,6 @@ router.post('/', validateRole(roles.admin), validateReqBody(CreateClassSchema), 
 
 // read all class
 router.get('/', validateRole(roles.admin), classController.readAllClasses);
+
+// assign teacher to class
+router.put('/:classId/assign-teacher', validateRole(roles.admin), validateReqBody(assignTeacherSchema), classController.assignClass);

@@ -14,3 +14,10 @@ export const CreateClassSchema = z.object({
         z.array(ObjectIdSchema),
     ]).transform((val) => (typeof val === "string" ? [val] : val)).optional(),
 });
+
+export const assignTeacherSchema = z.object({
+    teacherId: z.union([
+        ObjectIdSchema,
+        z.array(ObjectIdSchema),
+    ]).transform((val) => (typeof val === "string" ? [val] : val))
+});
