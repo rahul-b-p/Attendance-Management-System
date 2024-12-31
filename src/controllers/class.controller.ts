@@ -56,7 +56,7 @@ export const createClass = async (req: customRequestWithPayload<{}, any, CreateC
 export const readAllClasses = async (req: customRequestWithPayload, res: Response, next: NextFunction) => {
     try {
         const allClasses = await findAllClass();
-        res.status(200).json(await sendSuccessResponse('Fetched All Class Data', allClasses))
+        res.status(200).json(await sendSuccessResponse('Fetched All Class Data', allClasses));
     } catch (error) {
         logger.error(error);
         next(new InternalServerError('Something went wrong'));

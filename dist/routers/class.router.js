@@ -15,3 +15,6 @@ exports.router.get('/', (0, middlewares_1.validateRole)(enums_1.roles.admin), co
 exports.router.put('/:classId/assign-teacher', (0, middlewares_1.validateRole)(enums_1.roles.admin), (0, middlewares_1.validateReqBody)(schemas_1.assignTeacherSchema), controllers_1.classController.assignClass);
 // add student to class
 exports.router.put('/:classId/add-student', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), (0, middlewares_1.validateReqBody)(schemas_1.addStudentSchema), controllers_1.classController.addToClass);
+// remove teacher from class
+// remove student from class
+// delete class

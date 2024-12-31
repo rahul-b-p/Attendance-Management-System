@@ -20,7 +20,7 @@ export const createUser = async (req: customRequestWithPayload<{ role: string },
         const userId = req.payload?.id as string;
         const owner = await findUserById(userId) as UserToUse;
         if (role == roles.teacher || role == roles.admin) {
-            if (owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'))
+            if (owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
         }
 
         const { email } = req.body;

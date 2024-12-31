@@ -6,7 +6,7 @@ import { status } from "../enums";
 const attendanceSchema = new Schema<IAttendance>({
     studentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref:'users',
+        ref: 'users',
         required: true
     },
     date: {

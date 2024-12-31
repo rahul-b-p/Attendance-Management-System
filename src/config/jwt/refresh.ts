@@ -9,7 +9,7 @@ export const signRefreshToken = async (id: string, role: roles): Promise<string>
     try {
         const secretKey = process.env.REFRESH_TOKEN_SECRET;
         if (!secretKey) {
-            throw new Error("Can't Find secret key to sign Access token")
+            throw new Error("Can't Find secret key to sign Access token");
         }
         const RefreshToken = jwt.sign({ id, role }, secretKey, { expiresIn: '7d' });
         return RefreshToken;

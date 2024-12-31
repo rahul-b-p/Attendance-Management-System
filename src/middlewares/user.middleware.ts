@@ -6,8 +6,8 @@ import { userExistsById } from "../services";
 
 
 
-export const validateUser = async(req: customRequestWithPayload, res: Response, next: NextFunction) => {
-try {
+export const validateUser = async (req: customRequestWithPayload, res: Response, next: NextFunction) => {
+    try {
         const id = req.payload?.id;
         if (!id) throw new Error('The user ID was not added to the payload by the authentication middleware.');
 

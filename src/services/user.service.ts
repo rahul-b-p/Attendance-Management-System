@@ -12,7 +12,7 @@ const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
         username: userData.username,
         email: userData.email,
         role: userData.role
-    }
+    };
 }
 
 
@@ -72,7 +72,7 @@ export const updateRefreshToken = async (_id: Types.ObjectId, refreshToken: stri
 
 export const findUserById = async (_id: string): Promise<UserToUse | null> => {
     try {
-        const user = await User.findById({ _id }).lean() as UserToUse
+        const user = await User.findById({ _id }).lean() as UserToUse;
         return user;
     } catch (error: any) {
         logger.error(error.message);
@@ -125,10 +125,10 @@ export const userExistsByEmail = async (email: string): Promise<boolean> => {
 export const findUserByRole = async (role: roles): Promise<UserWithoutSensitiveData[]> => {
     try {
         const users = await User.find({ role }).select("-hashPassword -refreshToken");
-        return users as UserWithoutSensitiveData[]
+        return users as UserWithoutSensitiveData[];
     } catch (error: any) {
-        logger.error(error)
-        throw new Error(error.message)
+        logger.error(error);
+        throw new Error(error.message);
     }
 }
 
@@ -156,11 +156,11 @@ export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody
 
 export const DeleteUserById = async (_id: string): Promise<boolean> => {
     try {
-        const DeletedUser = await User.findByIdAndDelete({ _id })
+        const DeletedUser = await User.findByIdAndDelete({ _id });
         return DeletedUser ? true : false;
     } catch (error: any) {
         logger.error(error);
-        throw new Error(error.message)
+        throw new Error(error.message);
     }
 }
 
@@ -179,7 +179,7 @@ export const addToAssignClasses = async (teachers: string[], classId: string): P
         return;
     } catch (error: any) {
         logger.error(error);
-        throw new Error(error.message)
+        throw new Error(error.message);
     }
 }
 
@@ -197,11 +197,16 @@ export const addToClasses = async (students: string[], classId: string): Promise
         return;
     } catch (error: any) {
         logger.error(error);
-        throw new Error(error.message)
+        throw new Error(error.message);
     }
 }
 
-export const findUsersInClass = async (userIds: string[]):Promise<UserToShowInClass[]> => {
-    const users = (await User.find({ _id: { $in: userIds } }).lean()).map(convertUserToUseInClassData);
-    return users
+export const findUsersInClass = async (userIds: string[]): Promise<UserToShowInClass[]> => {
+    try {
+        const users = (await User.find({ _id: { $in: userIds } }).lean()).map(convertUserToUseInClassData);
+        return users;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
 };

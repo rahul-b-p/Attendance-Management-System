@@ -233,7 +233,13 @@ const addToClasses = (students, classId) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.addToClasses = addToClasses;
 const findUsersInClass = (userIds) => __awaiter(void 0, void 0, void 0, function* () {
-    const users = (yield models_1.User.find({ _id: { $in: userIds } }).lean()).map(convertUserToUseInClassData);
-    return users;
+    try {
+        const users = (yield models_1.User.find({ _id: { $in: userIds } }).lean()).map(convertUserToUseInClassData);
+        return users;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
 });
 exports.findUsersInClass = findUsersInClass;

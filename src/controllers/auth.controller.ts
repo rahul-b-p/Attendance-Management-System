@@ -23,9 +23,9 @@ export const login = async (req: Request<{}, any, LoginBody>, res: Response, nex
         const AccessToken = await signAccessToken(existingUser._id.toString(), existingUser.role);
         const RefreshToken = await signRefreshToken(existingUser._id.toString(), existingUser.role);
 
-        await updateRefreshToken(existingUser._id, RefreshToken)
+        await updateRefreshToken(existingUser._id, RefreshToken);
 
-        res.statusMessage = "Login Successful"
+        res.statusMessage = "Login Successful";
         res.status(200).json(await sendSuccessResponse('Login Successful', { AccessToken, RefreshToken }));
     } catch (error) {
         logger.error(error);
@@ -35,7 +35,7 @@ export const login = async (req: Request<{}, any, LoginBody>, res: Response, nex
 
 export const refreshToken = async (req: customRequestWithPayload, res: Response, next: NextFunction) => {
     try {
-        const id = req.payload?.id
+        const id = req.payload?.id;
         if (!id) throw new Error('The user ID was not added to the payload by the authentication middleware.');
 
         const existingUser = await findUserById(id);
@@ -55,7 +55,7 @@ export const refreshToken = async (req: customRequestWithPayload, res: Response,
 
 export const logout = async (req: customRequestWithPayload, res: Response, next: NextFunction) => {
     try {
-        const id = req.payload?.id
+        const id = req.payload?.id;
         if (!id) throw new Error('The user ID was not added to the payload by the authentication middleware.');
 
         const AccessToken = req.headers.authorization?.split(' ')[1];

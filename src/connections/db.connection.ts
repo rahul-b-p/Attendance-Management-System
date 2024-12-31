@@ -11,7 +11,7 @@ export const connectDB = async () => {
 
         logger.info(`Mongo Connected:${mongoConnect.connection.host}`);
     } catch (error: any) {
-        logger.error(`Failed to connect with mongo:${error.message}`)
+        logger.error(`Failed to connect with mongo:${error.message}`);
         process.exit(1);
     }
 }

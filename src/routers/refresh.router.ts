@@ -5,4 +5,4 @@ import { authController } from "../controllers";
 export const router = Router();
 
 
-router.post('/',authController.refreshToken);
+router.post('/', authController.refreshToken);

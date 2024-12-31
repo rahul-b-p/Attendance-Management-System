@@ -4,7 +4,7 @@ import { logger } from '../utils/logger';
 export const getEncryptedPassword = async (password: string): Promise<string> => {
     try {
         const salt = await bcrypt.genSalt(Number(process.env.SALT));
-        const encryptedPassword: string = await bcrypt.hash(password, salt)
+        const encryptedPassword: string = await bcrypt.hash(password, salt);
         return encryptedPassword;
     } catch (error) {
         logger.error(error);

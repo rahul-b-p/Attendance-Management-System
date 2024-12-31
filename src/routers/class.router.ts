@@ -18,3 +18,9 @@ router.put('/:classId/assign-teacher', validateRole(roles.admin), validateReqBod
 
 // add student to class
 router.put('/:classId/add-student', validateRole(roles.admin, roles.teacher), validateReqBody(addStudentSchema), classController.addToClass);
+
+// remove teacher from class
+
+// remove student from class
+
+// delete class

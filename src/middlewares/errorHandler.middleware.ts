@@ -11,6 +11,6 @@ export const ErrorHandler: ErrorRequestHandler = (err: Error, req: Request, res:
     else {
         res.status(400).json({
             message: 'Something bad has happend'
-        })
+        });
     }
 }

@@ -3,6 +3,8 @@ import { TokenPayload } from '../interfaces';
 import { logger } from '../utils/logger';
 import { BlacklistToken, User } from '../models';
 
+
+
 export const blackListToken = async (token: string):Promise<void>=> {
     try {
         const { exp } = jwt.decode(token) as TokenPayload;
@@ -19,7 +21,7 @@ export const blackListToken = async (token: string):Promise<void>=> {
 export const checkTokenBlacklist = async (token: string):Promise<boolean> => {
     try {
         const isJwtBlacklisted = await BlacklistToken.findOne({token});
-        return isJwtBlacklisted?true:false
+        return isJwtBlacklisted?true:false;
     } catch (error) {
         logger.error(error);
         throw new Error("Can't check the token now");

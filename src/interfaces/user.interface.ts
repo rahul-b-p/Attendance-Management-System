@@ -8,6 +8,6 @@ export interface IUser extends Document {
     hashPassword: string;
     role: roles;
     refreshToken: string;
-    assignedClasses:Types.ObjectId[];
-    classes:Types.ObjectId[];
+    assignedClasses: Types.ObjectId[];
+    classes: Types.ObjectId[];
 };
