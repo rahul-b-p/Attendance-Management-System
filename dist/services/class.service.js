@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertClass = void 0;
+exports.findAllClass = exports.insertClass = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const user_service_1 = require("./user.service");
@@ -35,3 +35,32 @@ const insertClass = (userId, classBody) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.insertClass = insertClass;
+const toClassToUse = (classData) => {
+    return {
+        _id: classData._id,
+        className: classData.className,
+        teachers: Array.isArray(classData.teachers) ? classData.teachers : [classData.teachers],
+        students: Array.isArray(classData.students) ? classData.students : [classData.students],
+    };
+};
+const findAllClass = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const allClasses = (yield models_1.Class.find().lean()).map(toClassToUse);
+        const transformedClass = yield Promise.all(allClasses.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+            const teacherDetails = yield (0, user_service_1.findUsersInClass)(user.teachers);
+            const studentDetails = yield (0, user_service_1.findUsersInClass)(user.students);
+            return {
+                _id: user._id,
+                className: user.className,
+                teachers: teacherDetails,
+                students: studentDetails
+            };
+        })));
+        return transformedClass;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.findAllClass = findAllClass;

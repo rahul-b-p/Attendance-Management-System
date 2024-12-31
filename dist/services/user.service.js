@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addToClasses = exports.addToAssignClasses = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.findUsersInClass = exports.convertUserToUseInClassData = exports.addToClasses = exports.addToAssignClasses = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -224,3 +224,17 @@ const addToClasses = (students, classId) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.addToClasses = addToClasses;
+const convertUserToUseInClassData = (userData) => {
+    return {
+        _id: userData._id,
+        username: userData.username,
+        email: userData.email,
+        role: userData.role
+    };
+};
+exports.convertUserToUseInClassData = convertUserToUseInClassData;
+const findUsersInClass = (userIds) => __awaiter(void 0, void 0, void 0, function* () {
+    const users = (yield models_1.User.find({ _id: { $in: userIds } }).lean()).map(exports.convertUserToUseInClassData);
+    return users;
+});
+exports.findUsersInClass = findUsersInClass;

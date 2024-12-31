@@ -10,7 +10,6 @@ const connections_1 = require("./connections");
 const adminSetup_1 = require("./utils/adminSetup");
 const middlewares_1 = require("./middlewares");
 const routers_1 = require("./routers");
-const enums_1 = require("./enums");
 (0, dotenv_1.config)();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
@@ -21,7 +20,7 @@ app.use('/auth', routers_1.authRouter);
 app.use('/refresh', middlewares_1.refreshTokenAuth, routers_1.refreshRouter);
 app.use(middlewares_1.accessTokenAuth);
 app.use('/user', middlewares_1.validateUser, routers_1.userRouter);
-app.use('/class', (0, middlewares_1.validateRole)(enums_1.roles.admin), routers_1.classRouter);
+app.use('/class', routers_1.classRouter);
 app.use('/attendance', routers_1.attendanceRouter);
 app.use(middlewares_1.ErrorHandler);
 app.listen(port, () => {

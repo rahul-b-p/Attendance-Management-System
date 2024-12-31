@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { roles } from "../enums";
 import { User } from "../models";
 import { logger } from "../utils/logger";
-import { CreateUserBody, UpdateUserBody, UserToUse, UserWithoutSensitiveData } from "../types";
+import { CreateUserBody, UpdateUserBody, UserToShowInClass, UserToUse, UserWithoutSensitiveData } from "../types";
 import { getEncryptedPassword } from "../config";
 
 
@@ -191,3 +191,17 @@ export const addToClasses = async (students: string[], classId: string): Promise
         throw new Error(error.message)
     }
 }
+
+export const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
+    return {
+        _id: userData._id,
+        username: userData.username,
+        email: userData.email,
+        role: userData.role
+    }
+}
+
+export const findUsersInClass = async (userIds: string[]):Promise<UserToShowInClass[]> => {
+    const users = (await User.find({ _id: { $in: userIds } }).lean()).map(convertUserToUseInClassData);
+    return users
+};

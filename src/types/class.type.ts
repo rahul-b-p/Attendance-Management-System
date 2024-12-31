@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { UserWithoutSensitiveData } from "./user.type";
 
 
 
@@ -8,4 +9,16 @@ export type CreateClassBody = {
     students?: string[] | string;
 }
 
-export type ClassToUse = Required<CreateClassBody>;
+export type ClassToUse = {
+    _id: Types.ObjectId
+    className: string;
+    teachers: string[];
+    students: string[];
+};
+
+export type ClassWithUserData = {
+    _id: Types.ObjectId
+    className: string;
+    teachers: UserWithoutSensitiveData[];
+    students: UserWithoutSensitiveData[];
+}
