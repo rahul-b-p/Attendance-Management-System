@@ -4,6 +4,14 @@ import { logger } from "../utils/logger";
 import { addToAssignClasses, addToClasses, findUsersInClass } from "./user.service";
 
 
+const toClassToUse = (classData: any): ClassToUse => {
+    return {
+        _id: classData._id,
+        className: classData.className,
+        teachers: Array.isArray(classData.teachers) ? classData.teachers : [classData.teachers],
+        students: Array.isArray(classData.students) ? classData.students : [classData.students],
+    };
+};
 
 
 export const insertClass = async (userId: string, classBody: CreateClassBody): Promise<ClassToUse> => {
@@ -26,15 +34,6 @@ export const insertClass = async (userId: string, classBody: CreateClassBody): P
         throw new Error(error.message);
     }
 }
-
-const toClassToUse = (classData: any): ClassToUse => {
-    return {
-        _id: classData._id,
-        className: classData.className,
-        teachers: Array.isArray(classData.teachers) ? classData.teachers : [classData.teachers],
-        students: Array.isArray(classData.students) ? classData.students : [classData.students],
-    };
-};
 
 export const findAllClass = async (): Promise<ClassWithUserData[]> => {
     try {

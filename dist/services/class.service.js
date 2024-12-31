@@ -13,6 +13,14 @@ exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = ex
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const user_service_1 = require("./user.service");
+const toClassToUse = (classData) => {
+    return {
+        _id: classData._id,
+        className: classData.className,
+        teachers: Array.isArray(classData.teachers) ? classData.teachers : [classData.teachers],
+        students: Array.isArray(classData.students) ? classData.students : [classData.students],
+    };
+};
 const insertClass = (userId, classBody) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { className, students, teachers } = classBody;
@@ -35,14 +43,6 @@ const insertClass = (userId, classBody) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.insertClass = insertClass;
-const toClassToUse = (classData) => {
-    return {
-        _id: classData._id,
-        className: classData.className,
-        teachers: Array.isArray(classData.teachers) ? classData.teachers : [classData.teachers],
-        students: Array.isArray(classData.students) ? classData.students : [classData.students],
-    };
-};
 const findAllClass = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const allClasses = (yield models_1.Class.find().lean()).map(toClassToUse);

@@ -6,6 +6,15 @@ import { CreateUserBody, UpdateUserBody, UserToShowInClass, UserToUse, UserWitho
 import { getEncryptedPassword } from "../config";
 
 
+const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
+    return {
+        _id: userData._id,
+        username: userData.username,
+        email: userData.email,
+        role: userData.role
+    }
+}
+
 
 export const checkRefreshTokenExistsById = async (_id: string, RefreshToken: string): Promise<boolean> => {
     try {
@@ -189,15 +198,6 @@ export const addToClasses = async (students: string[], classId: string): Promise
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message)
-    }
-}
-
-export const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
-    return {
-        _id: userData._id,
-        username: userData.username,
-        email: userData.email,
-        role: userData.role
     }
 }
 
