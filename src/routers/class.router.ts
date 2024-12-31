@@ -20,8 +20,9 @@ router.put('/:classId/assign-teacher', validateRole(roles.admin), validateReqBod
 router.put('/:classId/add-student', validateRole(roles.admin, roles.teacher), validateReqBody(StudentSchema), classController.addToClass);
 
 // remove teacher from class
-router.put('/:classId/remove-teacher', validateRole(roles.admin), validateReqBody(TeacherSchema), classController.removeTeacher);
+router.put('/:classId/remove-teacher', validateRole(roles.admin), validateReqBody(TeacherSchema), classController.removeTeachers);
 
 // remove student from class
+router.put('/:classId/remove-student', validateRole(roles.admin, roles.teacher), validateReqBody(StudentSchema), classController.removeStudents);
 
 // delete class

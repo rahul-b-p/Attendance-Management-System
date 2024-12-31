@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeTeacher = exports.addToClass = exports.assignClass = exports.readAllClasses = exports.createClass = void 0;
+exports.removeStudents = exports.removeTeachers = exports.addToClass = exports.assignClass = exports.readAllClasses = exports.createClass = void 0;
 const errors_1 = require("../errors");
 const logger_1 = require("../utils/logger");
 const services_1 = require("../services");
@@ -135,7 +135,7 @@ const addToClass = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.addToClass = addToClass;
-const removeTeacher = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const removeTeachers = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { classId } = req.params;
         const isValidClassId = (0, objectIdValidator_1.isValidObjectId)(classId);
@@ -146,17 +146,12 @@ const removeTeacher = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             return next(new errors_1.NotFoundError('Requested class not found!'));
         let { teacherId } = req.body;
         teacherId = Array.isArray(teacherId) ? teacherId : [teacherId];
-        yield Promise.all(teacherId.map((id) => __awaiter(void 0, void 0, void 0, function* () {
-            const userRoleFromTeacherId = yield (0, services_1.findRoleById)(id);
-            if (!userRoleFromTeacherId)
-                throw new errors_1.NotFoundError(`teacher with id: ${id} not found`);
-            else if (userRoleFromTeacherId == enums_1.roles.student)
-                throw new forbidden_error_1.ForbiddenError(`You have no permission to assign class for id: ${id}`);
-        })));
         const existingTeacherIds = existingClass.teachers.map(teacher => teacher.toString());
         const repeatedTeachers = teacherId.filter(id => existingTeacherIds.includes(id));
-        if (repeatedTeachers.length <= 0) {
-            return next(new errors_1.NotFoundError(`The following teacher(s) are not found in given class: ${repeatedTeachers.join(', ')}`));
+        if (repeatedTeachers.length <= 0)
+            return next(new errors_1.NotFoundError('Requested teachers are not found in given class'));
+        if (repeatedTeachers.length !== teacherId.length) {
+            return next(new errors_1.NotFoundError(`except following teacher(s),no others are not found in given class: ${repeatedTeachers.join(', ')}`));
         }
         const updatedClass = yield (0, services_1.removeTeachersFromClass)(classId, teacherId);
         res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Updated Successfully', updatedClass));
@@ -170,4 +165,36 @@ const removeTeacher = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         next(new errors_1.InternalServerError('Something went wrong'));
     }
 });
-exports.removeTeacher = removeTeacher;
+exports.removeTeachers = removeTeachers;
+const removeStudents = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { classId } = req.params;
+        const isValidClassId = (0, objectIdValidator_1.isValidObjectId)(classId);
+        if (!isValidClassId)
+            return next(new errors_1.BadRequestError('Requested with an Invalid Class Id'));
+        const existingClass = yield (0, services_1.findClassById)(classId);
+        if (!existingClass)
+            return next(new errors_1.NotFoundError('Requested class not found!'));
+        let { studentId } = req.body;
+        studentId = Array.isArray(studentId) ? studentId : [studentId];
+        const existingStudentIds = existingClass.students.map(student => student.toString());
+        const repeatedStudents = studentId.filter(id => existingStudentIds.includes(id));
+        if (repeatedStudents.length <= 0) {
+            return next(new errors_1.NotFoundError('Requested Students are not found in given class'));
+        }
+        if (repeatedStudents.length !== studentId.length) {
+            return next(new errors_1.NotFoundError(`Except following student(s), no others are not found on given this class: ${repeatedStudents.join(', ')}`));
+        }
+        const updatedClass = yield (0, services_1.removeStudentFromClass)(classId, studentId);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Updated Successfully', updatedClass));
+    }
+    catch (error) {
+        if (error instanceof errors_1.NotFoundError)
+            return next(error);
+        else if (error instanceof forbidden_error_1.ForbiddenError)
+            return next(error);
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Something went wrong'));
+    }
+});
+exports.removeStudents = removeStudents;

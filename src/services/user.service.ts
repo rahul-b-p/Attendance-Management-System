@@ -229,3 +229,21 @@ export const removeFromAssignClasses = async (teachers: string[], classId: strin
         throw new Error(error.message);
     }
 }
+
+export const removeFromClasses = async (students: string[], classId: string): Promise<void> => {
+    try {
+        const updatedUser = await User.updateMany(
+            {
+                _id: { $in: students },
+                role: roles.student,
+            },
+            {
+                $pull: { classes: classId },
+            }
+        );
+        return;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}

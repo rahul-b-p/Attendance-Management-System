@@ -16,6 +16,7 @@ exports.router.put('/:classId/assign-teacher', (0, middlewares_1.validateRole)(e
 // add student to class
 exports.router.put('/:classId/add-student', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), (0, middlewares_1.validateReqBody)(schemas_1.StudentSchema), controllers_1.classController.addToClass);
 // remove teacher from class
-exports.router.put('/:classId/remove-teacher', (0, middlewares_1.validateRole)(enums_1.roles.admin), (0, middlewares_1.validateReqBody)(schemas_1.TeacherSchema), controllers_1.classController.removeTeacher);
+exports.router.put('/:classId/remove-teacher', (0, middlewares_1.validateRole)(enums_1.roles.admin), (0, middlewares_1.validateReqBody)(schemas_1.TeacherSchema), controllers_1.classController.removeTeachers);
 // remove student from class
+exports.router.put('/:classId/remove-student', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), (0, middlewares_1.validateReqBody)(schemas_1.StudentSchema), controllers_1.classController.removeStudents);
 // delete class
