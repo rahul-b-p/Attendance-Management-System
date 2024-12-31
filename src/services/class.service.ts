@@ -1,7 +1,7 @@
 import { Class } from "../models";
 import { ClassToUse, CreateClassBody } from "../types";
 import { logger } from "../utils/logger";
-import { addStudentToClass, assignClassForTeachers } from "./user.service";
+import { addToAssignClasses, addToClasses } from "./user.service";
 
 
 
@@ -14,10 +14,12 @@ export const insertClass = async (userId: string, classBody: CreateClassBody): P
         const newClass = new Class({
             className, students, teachers
         });
-        await newClass.save();
         const classId = newClass._id.toString();
-        await addStudentToClass(students, classId);
-        await assignClassForTeachers(teachers, classId);
+        await Promise.all([
+            newClass.save(),
+            addToClasses(students, classId),
+            addToAssignClasses(teachers, classId)
+        ]);
         return newClass as ClassToUse
     } catch (error: any) {
         logger.error(error);

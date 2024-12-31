@@ -21,10 +21,12 @@ const insertClass = (userId, classBody) => __awaiter(void 0, void 0, void 0, fun
         const newClass = new models_1.Class({
             className, students, teachers
         });
-        yield newClass.save();
         const classId = newClass._id.toString();
-        yield (0, user_service_1.addStudentToClass)(students, classId);
-        yield (0, user_service_1.assignClassForTeachers)(teachers, classId);
+        yield Promise.all([
+            newClass.save(),
+            (0, user_service_1.addToClasses)(students, classId),
+            (0, user_service_1.addToAssignClasses)(teachers, classId)
+        ]);
         return newClass;
     }
     catch (error) {

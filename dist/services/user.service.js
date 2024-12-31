@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addStudentToClass = exports.assignClassForTeachers = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.addToClasses = exports.addToAssignClasses = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -116,15 +116,13 @@ const deleteRefreshToken = (_id, refreshToken) => __awaiter(void 0, void 0, void
 exports.deleteRefreshToken = deleteRefreshToken;
 const insertUser = (user) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, password, email, classes, assignedClasses, role } = user;
+        const { username, password, email, role } = user;
         const hashPassword = yield (0, config_1.getEncryptedPassword)(password);
         const newUser = new models_1.User({
             username,
             email,
             hashPassword: hashPassword,
-            role,
-            classes,
-            assignedClasses
+            role
         });
         yield newUser.save();
         const _a = newUser.toObject(), { hashPassword: _, refreshToken: __ } = _a, userWithoutSensitiveData = __rest(_a, ["hashPassword", "refreshToken"]);
@@ -160,7 +158,7 @@ const findUserByRole = (role) => __awaiter(void 0, void 0, void 0, function* () 
 exports.findUserByRole = findUserByRole;
 const updateUserById = (_id, updateUserBody) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, password, email, assignedClasses, classes, role } = updateUserBody;
+        const { username, password, email, role } = updateUserBody;
         const existingUser = yield (0, exports.findUserById)(_id);
         if (!existingUser)
             return null;
@@ -169,8 +167,7 @@ const updateUserById = (_id, updateUserBody) => __awaiter(void 0, void 0, void 0
             username: username ? username : existingUser.username,
             email: email ? email : existingUser.email,
             hashPassword,
-            role: role ? role : existingUser.role,
-            $push: { assignedClasses, classes }
+            role: role ? role : existingUser.role
         }, { new: true });
         if (!updatedUser)
             return null;
@@ -195,14 +192,15 @@ const DeleteUserById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.DeleteUserById = DeleteUserById;
-const assignClassForTeachers = (teachers, classId) => __awaiter(void 0, void 0, void 0, function* () {
+const addToAssignClasses = (teachers, classId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield models_1.User.updateMany({
+        const updatedUser = yield models_1.User.updateMany({
             _id: { $in: teachers },
-            role: enums_1.roles.teacher,
+            role: { $in: [enums_1.roles.teacher, enums_1.roles.admin] },
         }, {
             $addToSet: { assignedClasses: classId },
         });
+        logger_1.logger.info(updatedUser);
         return;
     }
     catch (error) {
@@ -210,10 +208,10 @@ const assignClassForTeachers = (teachers, classId) => __awaiter(void 0, void 0, 
         throw new Error(error.message);
     }
 });
-exports.assignClassForTeachers = assignClassForTeachers;
-const addStudentToClass = (students, classId) => __awaiter(void 0, void 0, void 0, function* () {
+exports.addToAssignClasses = addToAssignClasses;
+const addToClasses = (students, classId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield models_1.User.updateMany({
+        const updatedUser = yield models_1.User.updateMany({
             _id: { $in: students },
             role: enums_1.roles.student,
         }, {
@@ -226,4 +224,4 @@ const addStudentToClass = (students, classId) => __awaiter(void 0, void 0, void 
         throw new Error(error.message);
     }
 });
-exports.addStudentToClass = addStudentToClass;
+exports.addToClasses = addToClasses;

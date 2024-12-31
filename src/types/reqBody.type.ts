@@ -11,8 +11,6 @@ export type CreateUserBody = {
     username: string;
     email: string;
     password: string;
-    assignedClasses: ObjectIdString[]
-    classes: ObjectIdString[]
 }
 
 export type UpdateUserBody = Partial<CreateUserBody> & {role?:roles};

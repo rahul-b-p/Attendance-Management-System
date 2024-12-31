@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { roles } from "../enums";
-import { Class, User } from "../models";
+import { User } from "../models";
 import { logger } from "../utils/logger";
 import { CreateUserBody, UpdateUserBody, UserToUse, UserWithoutSensitiveData } from "../types";
 import { getEncryptedPassword } from "../config";
@@ -85,15 +85,13 @@ export const deleteRefreshToken = async (_id: Types.ObjectId, refreshToken: stri
 
 export const insertUser = async (user: CreateUserBody & { role: roles }): Promise<UserWithoutSensitiveData> => {
     try {
-        const { username, password, email, classes, assignedClasses, role } = user
+        const { username, password, email, role } = user
         const hashPassword = await getEncryptedPassword(password)
         const newUser = new User({
             username,
             email,
             hashPassword: hashPassword,
-            role,
-            classes,
-            assignedClasses
+            role
         });
         await newUser.save();
 
@@ -127,7 +125,7 @@ export const findUserByRole = async (role: roles): Promise<UserWithoutSensitiveD
 
 export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody): Promise<UserWithoutSensitiveData | null> => {
     try {
-        const { username, password, email, assignedClasses, classes, role } = updateUserBody;
+        const { username, password, email, role } = updateUserBody;
         const existingUser = await findUserById(_id);
         if (!existingUser) return null;
         const hashPassword = password ? await getEncryptedPassword(password) : existingUser?.hashPassword
@@ -135,8 +133,7 @@ export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody
             username: username ? username : existingUser.username,
             email: email ? email : existingUser.email,
             hashPassword,
-            role: role ? role : existingUser.role,
-            $push: { assignedClasses, classes }
+            role: role ? role : existingUser.role
         }, { new: true });
         if (!updatedUser) return null;
         await updatedUser.save();
@@ -158,17 +155,19 @@ export const DeleteUserById = async (_id: string): Promise<boolean> => {
     }
 }
 
-export const assignClassForTeachers = async (teachers: string[], classId: string): Promise<void> => {
+export const addToAssignClasses = async (teachers: string[], classId: string): Promise<void> => {
     try {
-        await User.updateMany(
+
+        const updatedUser = await User.updateMany(
             {
                 _id: { $in: teachers },
-                role: roles.teacher,
+                role: { $in: [roles.teacher, roles.admin] },
             },
             {
                 $addToSet: { assignedClasses: classId },
             }
         );
+        logger.info(updatedUser)
         return;
     } catch (error: any) {
         logger.error(error);
@@ -176,9 +175,9 @@ export const assignClassForTeachers = async (teachers: string[], classId: string
     }
 }
 
-export const addStudentToClass = async (students: string[], classId: string): Promise<void> => {
+export const addToClasses = async (students: string[], classId: string): Promise<void> => {
     try {
-        await User.updateMany(
+        const updatedUser = await User.updateMany(
             {
                 _id: { $in: students },
                 role: roles.student,

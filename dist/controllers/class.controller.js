@@ -15,6 +15,7 @@ const logger_1 = require("../utils/logger");
 const objectIdValidator_1 = require("../utils/objectIdValidator");
 const services_1 = require("../services");
 const successResponse_1 = require("../utils/successResponse");
+const enums_1 = require("../enums");
 const createClass = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -25,8 +26,8 @@ const createClass = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 const isValidId = (0, objectIdValidator_1.isValidObjectId)(item);
                 if (!isValidId)
                     return next(new errors_1.BadRequestError(`"${item}" is an Invalid Id!`));
-                const studentExists = yield (0, services_1.userExistsByEmail)(item);
-                if (!studentExists)
+                const existingStudent = yield (0, services_1.findUserById)(item);
+                if (!existingStudent || existingStudent.role !== enums_1.roles.student)
                     return next(new errors_1.NotFoundError(`not found any student with given id: "${item}"`));
             })));
         if (teachers)
@@ -34,8 +35,8 @@ const createClass = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 const isValidId = (0, objectIdValidator_1.isValidObjectId)(item);
                 if (!isValidId)
                     return next(new errors_1.BadRequestError(`"${item}" is an Invalid Id!`));
-                const teacherExists = yield (0, services_1.userExistsByEmail)(item);
-                if (!teacherExists)
+                const existngTeacher = yield (0, services_1.findUserById)(item);
+                if (!existngTeacher || existngTeacher.role == enums_1.roles.student)
                     return next(new errors_1.NotFoundError(`not found any teacher with given id: "${item}"`));
             })));
         const newClass = yield (0, services_1.insertClass)(userId, req.body);

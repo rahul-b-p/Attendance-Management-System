@@ -4,8 +4,9 @@ import { BadRequestError, InternalServerError, NotFoundError } from "../errors";
 import { logger } from "../utils/logger";
 import { CreateClassBody } from "../types";
 import { isValidObjectId } from "../utils/objectIdValidator";
-import { insertClass, userExistsByEmail } from "../services";
+import { findUserById, findUserByRole, insertClass, userExistsByEmail, userExistsById } from "../services";
 import { sendSuccessResponse } from "../utils/successResponse";
+import { roles } from "../enums";
 
 
 
@@ -19,8 +20,8 @@ export const createClass = async (req: customRequestWithPayload<{}, any, CreateC
                 const isValidId = isValidObjectId(item);
                 if (!isValidId) return next(new BadRequestError(`"${item}" is an Invalid Id!`));
 
-                const studentExists = await userExistsByEmail(item);
-                if (!studentExists) return next(new NotFoundError(`not found any student with given id: "${item}"`));
+                const existingStudent = await findUserById(item);
+                if (!existingStudent || existingStudent.role !== roles.student) return next(new NotFoundError(`not found any student with given id: "${item}"`));
             })
         )
 
@@ -29,8 +30,8 @@ export const createClass = async (req: customRequestWithPayload<{}, any, CreateC
                 const isValidId = isValidObjectId(item);
                 if (!isValidId) return next(new BadRequestError(`"${item}" is an Invalid Id!`));
 
-                const teacherExists = await userExistsByEmail(item);
-                if (!teacherExists) return next(new NotFoundError(`not found any teacher with given id: "${item}"`));
+                const existngTeacher = await findUserById(item);
+                if (!existngTeacher || existngTeacher.role == roles.student) return next(new NotFoundError(`not found any teacher with given id: "${item}"`));
             })
         )
 
