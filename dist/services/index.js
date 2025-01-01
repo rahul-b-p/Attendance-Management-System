@@ -17,3 +17,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./blacklistToken.service"), exports);
 __exportStar(require("./user.service"), exports);
 __exportStar(require("./class.service"), exports);
+__exportStar(require("./attendance.service"), exports);

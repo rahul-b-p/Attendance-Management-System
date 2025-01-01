@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { IAttendance } from "../interfaces";
-import { status } from "../enums";
+import { Status } from "../enums";
+import { getCurrentDateTime } from "../utils/dateFormat";
 
 
 const attendanceSchema = new Schema<IAttendance>({
@@ -17,15 +18,15 @@ const attendanceSchema = new Schema<IAttendance>({
     status: {
         type: String,
         required: true,
-        enum: Object.values(status)
+        enum: Object.values(Status)
     },
     remarks: {
         type: String,
-        required: true
+        required: false
     },
     createAt: {
-        type: Number,
-        default: Date.now()
+        type: String,
+        default: getCurrentDateTime()
     }
 });
 

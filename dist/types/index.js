@@ -15,7 +15,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./date.type"), exports);
-__exportStar(require("./reqBody.type"), exports);
+__exportStar(require("./auth.type"), exports);
 __exportStar(require("./user.type"), exports);
 __exportStar(require("./objectId.type"), exports);
 __exportStar(require("./class.type"), exports);
+__exportStar(require("./attendance.type"), exports);

@@ -2,7 +2,13 @@ import { Types } from "mongoose";
 import { roles } from "../enums";
 
 
+export type CreateUserBody = {
+    username: string;
+    email: string;
+    password: string;
+}
 
+export type UpdateUserBody = Partial<CreateUserBody> & { role?: roles };
 
 export type UserToUse = {
     _id: Types.ObjectId;
