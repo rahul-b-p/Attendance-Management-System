@@ -3,7 +3,7 @@ import { customRequestWithPayload } from "../interfaces";
 import { logger } from "../utils/logger";
 import { BadRequestError, InternalServerError, NotFoundError } from "../errors";
 import { AttendanceQuery, AttendanceSearchQuery, AttendanceSummaryQuery, CreateAttendanceBody, StanderdAttendance } from "../types";
-import { findAttendanceDataById, findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, updateAttendanceById } from "../services";
+import { deleteAttendanceById, findAttendanceDataById, findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, updateAttendanceById } from "../services";
 import { roles } from "../enums";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { ForbiddenError } from "../errors/forbidden.error";
@@ -199,6 +199,7 @@ export const updateAttendance = async (req: customRequestWithPayload<{ id: strin
         const { id } = req.params;
         const userId = req.payload?.id as string;
         let { studentId } = req.body;
+
         const isValidId = isValidObjectId(id);
         if (!isValidId) throw new BadRequestError('Requested with anInvalid Id');
 
@@ -220,9 +221,39 @@ export const updateAttendance = async (req: customRequestWithPayload<{ id: strin
             if (!isPermittedTeacher) throw new ForbiddenError('You have no permission to update this attendance data');
         }
 
-        logger.info(req.body)
         const updatedAttendanceData = await updateAttendanceById(id, req.body);
         res.status(200).json(await sendSuccessResponse('Attendance updated successfully', updatedAttendanceData));
+    } catch (error) {
+        if (error instanceof ForbiddenError || error instanceof NotFoundError || error instanceof BadRequestError) return next(error);
+
+        logger.error(error);
+        next(new InternalServerError('Internal Server Error'));
+    }
+}
+
+export const deleteAttendance = async (req: customRequestWithPayload<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userId = req.payload?.id as string;
+
+        const isValidId = isValidObjectId(id);
+        if (!isValidId) throw new BadRequestError('Requested with anInvalid Id');
+
+        const attendanceData = await findAttendanceDataById(id);
+        if (!attendanceData) throw new NotFoundError('Not found any attendance data with requested id');
+
+        const existingStudent = await findUserById(attendanceData.studentId.toString());
+        if (!existingStudent) throw new NotFoundError('Not found the requested student');
+        if (existingStudent.role !== roles.student) throw new BadRequestError('Requested studentId not belongs to a student');
+
+        const userRole = await findRoleById(userId) as roles;
+        if (userRole == roles.teacher) {
+            const isPermittedTeacher = await isStudentInAssignedClass(userId, attendanceData.studentId.toString());
+            if (!isPermittedTeacher) throw new ForbiddenError('You have no permission to update this attendance data');
+        }
+
+        await deleteAttendanceById(id);
+        res.status(200).json(await sendSuccessResponse('Attendance record deleted successfully'))
     } catch (error) {
         if (error instanceof ForbiddenError || error instanceof NotFoundError || error instanceof BadRequestError) return next(error);
 

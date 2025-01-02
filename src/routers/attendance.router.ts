@@ -22,4 +22,5 @@ router.get('/summary', validateRole(roles.admin, roles.teacher), validateReqQuer
 // Update Attendance
 router.put('/:id', validateRole(roles.admin, roles.teacher), validateReqBody(updateAttendanceSchema), attendanceController.updateAttendance);
 
-// Delete Attendancet
+// Delete Attendance
+router.delete('/:id', validateRole(roles.admin, roles.teacher), attendanceController.deleteAttendance);

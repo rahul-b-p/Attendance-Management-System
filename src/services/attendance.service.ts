@@ -120,3 +120,13 @@ export const updateAttendanceById = async (_id: string, updateData: Partial<Stan
         throw new Error(error.message);
     }
 }
+
+export const deleteAttendanceById = async (_id: string): Promise<void> => {
+    try {
+        await Attendance.findByIdAndDelete({ _id });
+        return;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}

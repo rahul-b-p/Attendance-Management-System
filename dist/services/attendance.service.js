@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateAttendanceById = exports.findAttendanceDataById = exports.findAttendanceSummary = exports.findFilteredAttendance = exports.insertAttendance = void 0;
+exports.deleteAttendanceById = exports.updateAttendanceById = exports.findAttendanceDataById = exports.findAttendanceSummary = exports.findFilteredAttendance = exports.insertAttendance = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -138,3 +138,14 @@ const updateAttendanceById = (_id, updateData) => __awaiter(void 0, void 0, void
     }
 });
 exports.updateAttendanceById = updateAttendanceById;
+const deleteAttendanceById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield models_1.Attendance.findByIdAndDelete({ _id });
+        return;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.deleteAttendanceById = deleteAttendanceById;

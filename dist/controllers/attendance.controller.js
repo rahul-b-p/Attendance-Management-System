@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateAttendance = exports.attendanceSummary = exports.filterAndSearchAttendance = exports.viewAttendance = exports.markAttendance = void 0;
+exports.deleteAttendance = exports.updateAttendance = exports.attendanceSummary = exports.filterAndSearchAttendance = exports.viewAttendance = exports.markAttendance = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const services_1 = require("../services");
@@ -239,7 +239,6 @@ const updateAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, f
             if (!isPermittedTeacher)
                 throw new forbidden_error_1.ForbiddenError('You have no permission to update this attendance data');
         }
-        logger_1.logger.info(req.body);
         const updatedAttendanceData = yield (0, services_1.updateAttendanceById)(id, req.body);
         res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Attendance updated successfully', updatedAttendanceData));
     }
@@ -251,3 +250,36 @@ const updateAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.updateAttendance = updateAttendance;
+const deleteAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        const isValidId = (0, objectIdValidator_1.isValidObjectId)(id);
+        if (!isValidId)
+            throw new errors_1.BadRequestError('Requested with anInvalid Id');
+        const attendanceData = yield (0, services_1.findAttendanceDataById)(id);
+        if (!attendanceData)
+            throw new errors_1.NotFoundError('Not found any attendance data with requested id');
+        const existingStudent = yield (0, services_1.findUserById)(attendanceData.studentId.toString());
+        if (!existingStudent)
+            throw new errors_1.NotFoundError('Not found the requested student');
+        if (existingStudent.role !== enums_1.roles.student)
+            throw new errors_1.BadRequestError('Requested studentId not belongs to a student');
+        const userRole = yield (0, services_1.findRoleById)(userId);
+        if (userRole == enums_1.roles.teacher) {
+            const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(userId, attendanceData.studentId.toString());
+            if (!isPermittedTeacher)
+                throw new forbidden_error_1.ForbiddenError('You have no permission to update this attendance data');
+        }
+        yield (0, services_1.deleteAttendanceById)(id);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Attendance record deleted successfully'));
+    }
+    catch (error) {
+        if (error instanceof forbidden_error_1.ForbiddenError || error instanceof errors_1.NotFoundError || error instanceof errors_1.BadRequestError)
+            return next(error);
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Internal Server Error'));
+    }
+});
+exports.deleteAttendance = deleteAttendance;
