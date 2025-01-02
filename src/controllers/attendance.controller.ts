@@ -3,7 +3,7 @@ import { customRequestWithPayload } from "../interfaces";
 import { logger } from "../utils/logger";
 import { BadRequestError, InternalServerError, NotFoundError } from "../errors";
 import { AttendanceQuery, AttendanceSearchQuery, AttendanceSummaryQuery, CreateAttendanceBody, StanderdAttendance } from "../types";
-import { deleteAttendanceById, findAttendanceDataById, findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, updateAttendanceById } from "../services";
+import { deleteAttendanceById, findAttendanceDataById, findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, updateAttendanceById, userExistsById } from "../services";
 import { roles } from "../enums";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { ForbiddenError } from "../errors/forbidden.error";
@@ -88,8 +88,12 @@ export const viewAttendance = async (req: customRequestWithPayload<{}, any, any,
             }
         }
         else if (studentId) {
+            const isStudentExists = await userExistsById(studentId);
+            if (!isStudentExists) throw new NotFoundError('Requested student not found');
             students = [studentId];
         }
+
+        
 
         const query: Record<string, any> = {};
 
@@ -129,6 +133,8 @@ export const filterAndSearchAttendance = async (req: customRequestWithPayload<{}
             }
         }
         else if (studentId) {
+            const isStudentExists = await userExistsById(studentId);
+            if (!isStudentExists) throw new NotFoundError('Requested student not found');
             students = [studentId];
         }
 

@@ -103,6 +103,9 @@ const viewAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             }
         }
         else if (studentId) {
+            const isStudentExists = yield (0, services_1.userExistsById)(studentId);
+            if (!isStudentExists)
+                throw new errors_1.NotFoundError('Requested student not found');
             students = [studentId];
         }
         const query = {};
@@ -145,6 +148,9 @@ const filterAndSearchAttendance = (req, res, next) => __awaiter(void 0, void 0, 
             }
         }
         else if (studentId) {
+            const isStudentExists = yield (0, services_1.userExistsById)(studentId);
+            if (!isStudentExists)
+                throw new errors_1.NotFoundError('Requested student not found');
             students = [studentId];
         }
         const query = {};
