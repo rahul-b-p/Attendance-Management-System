@@ -15,12 +15,17 @@ import { isValidObjectId } from "../utils/objectIdValidator";
 
 export const markAttendance = async (req: customRequestWithPayload<{}, any, CreateAttendanceBody>, res: Response, next: NextFunction) => {
     try {
+        const userId = req.payload?.id as string;
+        const userRole = await findRoleById(userId) as roles;
         let { classId, students, studentId, attendanceDetails, ...commonAttendanceData } = req.body;
 
         if (classId) {
             const existingClass = await findClassById(classId);
             if (!existingClass) throw new NotFoundError('Class not found');
             if (existingClass.students.length <= 0) throw new BadRequestError('No students in this class');
+            if (userRole == roles.teacher) {
+                if (existingClass.teachers.includes(userId)) throw new ForbiddenError(`You have no permission to take action on class: ${classId}`);
+            }
             students = existingClass.students;
         }
 
@@ -36,6 +41,10 @@ export const markAttendance = async (req: customRequestWithPayload<{}, any, Crea
                 if (!existingStudent || existingStudent.role !== roles.student) {
                     throw new NotFoundError(`Student not found: ${studentId}`);
                 }
+                if (userRole == roles.teacher) {
+                    const isPermittedTeacher = await isStudentInAssignedClass(userId, studentId);
+                    if (!isPermittedTeacher) throw new ForbiddenError(`You have no permission to take action on student ${studentId}`);
+                }
             }));
         }
 
@@ -50,7 +59,7 @@ export const markAttendance = async (req: customRequestWithPayload<{}, any, Crea
 
     } catch (error) {
         logger.error(error);
-        if (error instanceof NotFoundError || error instanceof BadRequestError) {
+        if (error instanceof NotFoundError || error instanceof BadRequestError || error instanceof ForbiddenError) {
             return next(error);
         }
         next(new InternalServerError('Internal Server Error'));

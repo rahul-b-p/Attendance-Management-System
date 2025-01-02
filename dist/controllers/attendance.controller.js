@@ -30,14 +30,21 @@ const forbidden_error_1 = require("../errors/forbidden.error");
 const helpers_1 = require("../helpers");
 const objectIdValidator_1 = require("../utils/objectIdValidator");
 const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        let _a = req.body, { classId, students, studentId, attendanceDetails } = _a, commonAttendanceData = __rest(_a, ["classId", "students", "studentId", "attendanceDetails"]);
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        const userRole = yield (0, services_1.findRoleById)(userId);
+        let _b = req.body, { classId, students, studentId, attendanceDetails } = _b, commonAttendanceData = __rest(_b, ["classId", "students", "studentId", "attendanceDetails"]);
         if (classId) {
             const existingClass = yield (0, services_1.findClassById)(classId);
             if (!existingClass)
                 throw new errors_1.NotFoundError('Class not found');
             if (existingClass.students.length <= 0)
                 throw new errors_1.BadRequestError('No students in this class');
+            if (userRole == enums_1.roles.teacher) {
+                if (existingClass.teachers.includes(userId))
+                    throw new forbidden_error_1.ForbiddenError(`You have no permission to take action on class: ${classId}`);
+            }
             students = existingClass.students;
         }
         if (studentId) {
@@ -51,6 +58,11 @@ const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 if (!existingStudent || existingStudent.role !== enums_1.roles.student) {
                     throw new errors_1.NotFoundError(`Student not found: ${studentId}`);
                 }
+                if (userRole == enums_1.roles.teacher) {
+                    const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(userId, studentId);
+                    if (!isPermittedTeacher)
+                        throw new forbidden_error_1.ForbiddenError(`You have no permission to take action on student ${studentId}`);
+                }
             })));
         }
         if (attendanceDetails && attendanceDetails.length <= 0)
@@ -60,7 +72,7 @@ const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
     catch (error) {
         logger_1.logger.error(error);
-        if (error instanceof errors_1.NotFoundError || error instanceof errors_1.BadRequestError) {
+        if (error instanceof errors_1.NotFoundError || error instanceof errors_1.BadRequestError || error instanceof forbidden_error_1.ForbiddenError) {
             return next(error);
         }
         next(new errors_1.InternalServerError('Internal Server Error'));
