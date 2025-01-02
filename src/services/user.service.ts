@@ -5,6 +5,7 @@ import { logger } from "../utils/logger";
 import { CreateUserBody, UpdateUserBody, UserToShowInClass, UserToUse, UserWithoutSensitiveData } from "../types";
 import { getEncryptedPassword } from "../config";
 import { removeUserIdFromAllClass } from "./class.service";
+import { deleteAttendanceByStudentId } from "./attendance.service";
 
 
 const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
@@ -14,6 +15,23 @@ const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
         email: userData.email,
         role: userData.role
     };
+}
+const checkStudentAndDeleteAttendance = (userData: UserToUse):Promise<boolean> => {
+    if (userData.role !== roles.student) {
+        return new Promise((resolve, reject) => {
+            resolve(true)
+        })
+    }
+    else {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await deleteAttendanceByStudentId(userData._id.toString());
+                resolve(true)
+            } catch (error) {
+                reject('Failed to delete attendance data');
+            }
+        })
+    }
 }
 
 
@@ -158,10 +176,12 @@ export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody
 export const DeleteUserById = async (_id: string): Promise<boolean> => {
     try {
         const existingUser = await findUserById(_id);
-        if(!existingUser) return false;
+        if (!existingUser) return false;
+
         await Promise.all([
             User.findByIdAndDelete({ _id }),
-            removeUserIdFromAllClass(_id,existingUser.role,existingUser.classes,existingUser.assignedClasses)
+            removeUserIdFromAllClass(_id, existingUser.role, existingUser.classes, existingUser.assignedClasses),
+            checkStudentAndDeleteAttendance(existingUser)
         ])
         return true;
     } catch (error: any) {
@@ -253,3 +273,4 @@ export const removeIdFromClasses = async (students: string[], classId: string): 
         throw new Error(error.message);
     }
 }
+

@@ -71,10 +71,10 @@ const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         res.status(201).json(yield (0, successResponse_1.sendSuccessResponse)('Attendance marked successfully', insertedAttendanceData));
     }
     catch (error) {
-        logger_1.logger.error(error);
         if (error instanceof errors_1.NotFoundError || error instanceof errors_1.BadRequestError || error instanceof forbidden_error_1.ForbiddenError) {
             return next(error);
         }
+        logger_1.logger.error(error);
         next(new errors_1.InternalServerError('Internal Server Error'));
     }
 });

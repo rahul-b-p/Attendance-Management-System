@@ -58,10 +58,10 @@ export const markAttendance = async (req: customRequestWithPayload<{}, any, Crea
         res.status(201).json(await sendSuccessResponse('Attendance marked successfully', insertedAttendanceData));
 
     } catch (error) {
-        logger.error(error);
         if (error instanceof NotFoundError || error instanceof BadRequestError || error instanceof ForbiddenError) {
             return next(error);
         }
+        logger.error(error);
         next(new InternalServerError('Internal Server Error'));
     }
 }

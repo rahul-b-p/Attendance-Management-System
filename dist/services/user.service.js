@@ -26,6 +26,7 @@ const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const config_1 = require("../config");
 const class_service_1 = require("./class.service");
+const attendance_service_1 = require("./attendance.service");
 const convertUserToUseInClassData = (userData) => {
     return {
         _id: userData._id,
@@ -33,6 +34,24 @@ const convertUserToUseInClassData = (userData) => {
         email: userData.email,
         role: userData.role
     };
+};
+const checkStudentAndDeleteAttendance = (userData) => {
+    if (userData.role !== enums_1.roles.student) {
+        return new Promise((resolve, reject) => {
+            resolve(true);
+        });
+    }
+    else {
+        return new Promise((resolve, reject) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                yield (0, attendance_service_1.deleteAttendanceByStudentId)(userData._id.toString());
+                resolve(true);
+            }
+            catch (error) {
+                reject('Failed to delete attendance data');
+            }
+        }));
+    }
 };
 const checkRefreshTokenExistsById = (_id, RefreshToken) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -197,7 +216,8 @@ const DeleteUserById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
             return false;
         yield Promise.all([
             models_1.User.findByIdAndDelete({ _id }),
-            (0, class_service_1.removeUserIdFromAllClass)(_id, existingUser.role, existingUser.classes, existingUser.assignedClasses)
+            (0, class_service_1.removeUserIdFromAllClass)(_id, existingUser.role, existingUser.classes, existingUser.assignedClasses),
+            checkStudentAndDeleteAttendance(existingUser)
         ]);
         return true;
     }

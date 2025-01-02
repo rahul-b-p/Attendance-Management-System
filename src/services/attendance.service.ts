@@ -14,7 +14,6 @@ const convertAttendanceToUse = (AttendanceData: any): AttendancesToUse => {
         createAt: AttendanceData.createAt
     }
 }
-
 const convertAttendanceToStanderd = (AttendanceData: any): StanderdAttendance => {
     return {
         studentId: AttendanceData.studentId,
@@ -124,6 +123,16 @@ export const updateAttendanceById = async (_id: string, updateData: Partial<Stan
 export const deleteAttendanceById = async (_id: string): Promise<void> => {
     try {
         await Attendance.findByIdAndDelete({ _id });
+        return;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const deleteAttendanceByStudentId = async (studentId: string): Promise<void> => {
+    try {
+        await Attendance.deleteMany({ studentId });
         return;
     } catch (error: any) {
         logger.error(error);

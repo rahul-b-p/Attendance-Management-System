@@ -14,4 +14,4 @@ exports.router.get('/:role', (0, middlewares_1.validateRole)(enums_1.roles.admin
 // update user
 exports.router.put('/:id', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), (0, middlewares_1.validateReqBody)(schemas_1.updatedUserSchema), controllers_1.userController.updateUser);
 // delete user
-exports.router.delete('/:id', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.student), controllers_1.userController.deleteUser);
+exports.router.delete('/:id', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), controllers_1.userController.deleteUser);
