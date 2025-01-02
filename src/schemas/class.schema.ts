@@ -13,18 +13,18 @@ export const CreateClassSchema = z.object({
         ObjectIdSchema,
         z.array(ObjectIdSchema),
     ]).transform((val) => (typeof val === "string" ? [val] : val)).optional(),
-});
+}).strict();
 
 export const TeacherSchema = z.object({
     teacherId: z.union([
         ObjectIdSchema,
         z.array(ObjectIdSchema),
     ]).transform((val) => (typeof val === "string" ? [val] : val))
-});
+}).strict();
 
 export const StudentSchema = z.object({
     studentId: z.union([
         ObjectIdSchema,
         z.array(ObjectIdSchema),
     ]).transform((val) => (typeof val === "string" ? [val] : val))
-});
+}).strict();

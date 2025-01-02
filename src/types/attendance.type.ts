@@ -5,13 +5,13 @@ import { YYYYMMDD } from "./date.type";
 
 
 export type CreateAttendanceBody = {
-    studentId?:string;
+    studentId?: string;
     students?: string[];
     classId?: string;
     date: YYYYMMDD;
     status: Status;
     remarks?: string;
-    attendanceDetails?:InsertAttendance[];
+    attendanceDetails?: StanderdAttendance[];
 }
 
 export type AttendancesToSave = {
@@ -30,9 +30,13 @@ export type AttendancesToUse = {
     createAt: string;
 };
 
-export type InsertAttendance = {
+export type StanderdAttendance = {
     studentId: string;
     date: YYYYMMDD;
     status: Status;
     remarks?: string;
 };
+
+export type AttendanceQuery = Partial<Omit<StanderdAttendance, 'remarks'>>;
+
+export type AttendanceToFilter = Partial<Omit<AttendancesToSave, 'remarks'>>;

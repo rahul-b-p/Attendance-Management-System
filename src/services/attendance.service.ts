@@ -1,5 +1,5 @@
 import { Attendance } from "../models";
-import { AttendancesToSave, AttendancesToUse, InsertAttendance } from "../types";
+import { AttendanceQuery, AttendancesToSave, AttendancesToUse, AttendanceToFilter, StanderdAttendance } from "../types";
 import { logger } from "../utils/logger";
 
 
@@ -9,13 +9,22 @@ const convertAttendanceToUse = (AttendanceData: any): AttendancesToUse => {
         studentId: AttendanceData.studentId,
         date: AttendanceData.date,
         status: AttendanceData.status,
-        remarks:AttendanceData.remarks,
+        remarks: AttendanceData.remarks,
         createAt: AttendanceData.createAt
     }
 }
 
+const convertAttendanceToStanderd = (AttendanceData: any): StanderdAttendance => {
+    return {
+        studentId: AttendanceData.studentId,
+        date: AttendanceData.date,
+        status: AttendanceData.status,
+        remarks: AttendanceData.remarks
+    }
+}
 
-export const insertAttendance = async (manyToOneAttendance?: AttendancesToSave, manyToManyAttendance?: InsertAttendance[]): Promise<AttendancesToUse[]> => {
+
+export const insertAttendance = async (manyToOneAttendance?: AttendancesToSave, manyToManyAttendance?: StanderdAttendance[]): Promise<AttendancesToUse[]> => {
     try {
         if (manyToOneAttendance && manyToManyAttendance) throw new Error('Provide only one argument.');
 
@@ -36,6 +45,24 @@ export const insertAttendance = async (manyToOneAttendance?: AttendancesToSave, 
 
         const insertedAttendanceData = await Attendance.insertMany(attendanceData);
         return insertedAttendanceData.map(convertAttendanceToUse);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const findFilteredAttendance = async (query: AttendanceToFilter): Promise<StanderdAttendance[]> => {
+    try {
+        const { students, ...restQuery } = query;
+
+        const filteredAttendance = await Attendance.find({
+            ...restQuery,
+            ...(students ? { studentId: { $in: students } } : {})
+        })
+            .select('studentId date status remarks')
+            .lean();
+
+        return filteredAttendance.map(convertAttendanceToStanderd);
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message);

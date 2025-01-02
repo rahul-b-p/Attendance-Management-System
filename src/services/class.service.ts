@@ -1,9 +1,9 @@
 import { Types } from "mongoose";
 import { roles } from "../enums";
 import { Class } from "../models";
-import { ClassToUse, ClassWithUserData, CreateClassBody } from "../types";
+import { ClassToUse, ClassWithUserData, CreateClassBody, UserToUse } from "../types";
 import { logger } from "../utils/logger";
-import { addToAssignClasses, addToClasses, findUsersInClass, removeIdFromAssignClasses, removeIdFromClasses } from "./user.service";
+import { addToAssignClasses, addToClasses, findUserById, findUsersInClass, removeIdFromAssignClasses, removeIdFromClasses } from "./user.service";
 
 
 const toClassToUse = (classData: any): ClassToUse => {
@@ -163,3 +163,38 @@ export const removeUserIdFromAllClass = async (_id: string, role: roles, classes
         throw new Error(error.message);
     }
 }
+
+export const isStudentInAssignedClass = async (teacherId: string, studentId: string): Promise<boolean> => {
+    try {
+        const { assignedClasses } = await findUserById(teacherId) as UserToUse;
+
+        if (!assignedClasses.length) return false;
+
+        const isStudentInClass = await Class.exists({
+            _id: { $in: assignedClasses },
+            students: studentId
+        });
+
+        return Boolean(isStudentInClass);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+};
+
+export const getStudentsInAssignedClasses = async (teacherId: string): Promise<string[]> => {
+    try {
+        const { assignedClasses } = await findUserById(teacherId) as UserToUse;
+
+        if (!assignedClasses.length) return [];
+
+        const students = await Class.find({ _id: { $in: assignedClasses } })
+            .select('students')
+            .lean();
+
+        return students.flatMap((item) => item.students.map((student: Types.ObjectId) => student.toHexString()));
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+};

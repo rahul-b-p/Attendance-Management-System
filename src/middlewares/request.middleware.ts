@@ -5,6 +5,7 @@ import { InternalServerError } from "../errors/server.error";
 
 
 
+
 export const validateReqBody = (schema: ZodSchema) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -20,3 +21,21 @@ export const validateReqBody = (schema: ZodSchema) => {
         }
     };
 }
+
+export const validateReqQuery= (schema: ZodSchema) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        try {
+            req.query = schema.parse(req.query);
+            next();
+        } catch (error) {
+            if (error instanceof ZodError) {
+                error.errors.map((e) => {
+                    return next(new BadRequestError(`Bad Request, Invalid Query`));
+                })
+            }
+            else next(new InternalServerError('Validation failed'));
+        }
+    };
+}
+
+

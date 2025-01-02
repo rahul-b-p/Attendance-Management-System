@@ -13,16 +13,16 @@ exports.CreateClassSchema = zod_1.z.object({
         id_schema_1.ObjectIdSchema,
         zod_1.z.array(id_schema_1.ObjectIdSchema),
     ]).transform((val) => (typeof val === "string" ? [val] : val)).optional(),
-});
+}).strict();
 exports.TeacherSchema = zod_1.z.object({
     teacherId: zod_1.z.union([
         id_schema_1.ObjectIdSchema,
         zod_1.z.array(id_schema_1.ObjectIdSchema),
     ]).transform((val) => (typeof val === "string" ? [val] : val))
-});
+}).strict();
 exports.StudentSchema = zod_1.z.object({
     studentId: zod_1.z.union([
         id_schema_1.ObjectIdSchema,
         zod_1.z.array(id_schema_1.ObjectIdSchema),
     ]).transform((val) => (typeof val === "string" ? [val] : val))
-});
+}).strict();

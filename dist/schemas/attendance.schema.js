@@ -11,7 +11,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAttendanceSchema = void 0;
+exports.AttendanceQuerySchema = exports.createAttendanceSchema = void 0;
 const zod_1 = require("zod");
 const id_schema_1 = require("./id.schema");
 const date_schema_1 = require("./date.schema");
@@ -44,3 +44,8 @@ exports.createAttendanceSchema = zod_1.z.object({
     }
     return true;
 }, { message: 'Provide exactly one of studentId, students, or classId with required non-optional fields when attendanceDetails is not provided.' });
+exports.AttendanceQuerySchema = zod_1.z.object({
+    studentId: id_schema_1.ObjectIdSchema.optional(),
+    date: date_schema_1.YYYYMMDDSchema.optional(),
+    status: status_Schema_1.StatusSchema.optional()
+}).strict();

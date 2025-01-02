@@ -8,8 +8,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertAttendance = void 0;
+exports.findFilteredAttendance = exports.insertAttendance = void 0;
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const convertAttendanceToUse = (AttendanceData) => {
@@ -20,6 +31,14 @@ const convertAttendanceToUse = (AttendanceData) => {
         status: AttendanceData.status,
         remarks: AttendanceData.remarks,
         createAt: AttendanceData.createAt
+    };
+};
+const convertAttendanceToStanderd = (AttendanceData) => {
+    return {
+        studentId: AttendanceData.studentId,
+        date: AttendanceData.date,
+        status: AttendanceData.status,
+        remarks: AttendanceData.remarks
     };
 };
 const insertAttendance = (manyToOneAttendance, manyToManyAttendance) => __awaiter(void 0, void 0, void 0, function* () {
@@ -46,3 +65,17 @@ const insertAttendance = (manyToOneAttendance, manyToManyAttendance) => __awaite
     }
 });
 exports.insertAttendance = insertAttendance;
+const findFilteredAttendance = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { students } = query, restQuery = __rest(query, ["students"]);
+        const filteredAttendance = yield models_1.Attendance.find(Object.assign(Object.assign({}, restQuery), (students ? { studentId: { $in: students } } : {})))
+            .select('studentId date status remarks')
+            .lean();
+        return filteredAttendance.map(convertAttendanceToStanderd);
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.findFilteredAttendance = findFilteredAttendance;

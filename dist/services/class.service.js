@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeUserIdFromAllClass = exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
+exports.getStudentsInAssignedClasses = exports.isStudentInAssignedClass = exports.removeUserIdFromAllClass = exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -173,3 +173,36 @@ const removeUserIdFromAllClass = (_id, role, classes, assignedClasses) => __awai
     }
 });
 exports.removeUserIdFromAllClass = removeUserIdFromAllClass;
+const isStudentInAssignedClass = (teacherId, studentId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { assignedClasses } = yield (0, user_service_1.findUserById)(teacherId);
+        if (!assignedClasses.length)
+            return false;
+        const isStudentInClass = yield models_1.Class.exists({
+            _id: { $in: assignedClasses },
+            students: studentId
+        });
+        return Boolean(isStudentInClass);
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.isStudentInAssignedClass = isStudentInAssignedClass;
+const getStudentsInAssignedClasses = (teacherId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { assignedClasses } = yield (0, user_service_1.findUserById)(teacherId);
+        if (!assignedClasses.length)
+            return [];
+        const students = yield models_1.Class.find({ _id: { $in: assignedClasses } })
+            .select('students')
+            .lean();
+        return students.flatMap((item) => item.students.map((student) => student.toHexString()));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.getStudentsInAssignedClasses = getStudentsInAssignedClasses;

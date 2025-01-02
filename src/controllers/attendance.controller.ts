@@ -2,10 +2,11 @@ import { NextFunction, Response } from "express";
 import { customRequestWithPayload } from "../interfaces";
 import { logger } from "../utils/logger";
 import { BadRequestError, InternalServerError, NotFoundError } from "../errors";
-import { AttendancesToSave, CreateAttendanceBody, InsertAttendance } from "../types";
-import { findClassById, findUserById, insertAttendance } from "../services";
+import { AttendanceQuery, CreateAttendanceBody } from "../types";
+import { findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass } from "../services";
 import { roles } from "../enums";
 import { sendSuccessResponse } from "../utils/successResponse";
+import { ForbiddenError } from "../errors/forbidden.error";
 
 
 
@@ -50,6 +51,45 @@ export const markAttendance = async (req: customRequestWithPayload<{}, any, Crea
         if (error instanceof NotFoundError || error instanceof BadRequestError) {
             return next(error);
         }
+        next(new InternalServerError('Internal Server Error'));
+    }
+};
+
+export const viewAttendance = async (req: customRequestWithPayload<{}, any, any, AttendanceQuery>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.payload?.id as string;
+        const userRole = await findRoleById(userId) as roles;
+        const { studentId, date, status } = req.query;
+
+        let students: string[] = [];
+
+        if (userRole === roles.student) {
+            students = [userId];
+        }
+        else if (userRole === roles.teacher) {
+            if (studentId) {
+                const isPermittedTeacher = await isStudentInAssignedClass(userId, studentId);
+                if (!isPermittedTeacher) throw new ForbiddenError('Not permitted to access this student data');
+                students = [studentId];
+            } else {
+                students = await getStudentsInAssignedClasses(userId);
+                if (students.length === 0) throw new NotFoundError('No students in assigned classes');
+            }
+        }
+        else if (studentId) {
+            students = [studentId];
+        }
+
+        const query: Record<string, any> = { students };
+
+        if (date) query.date = date;
+        if (status) query.status = status;
+
+        const attendanceData = await findFilteredAttendance(query);
+        res.status(200).json(await sendSuccessResponse('Fetched attendance data', attendanceData));
+    } catch (error) {
+        if (error instanceof ForbiddenError || error instanceof NotFoundError) return next(error);
+        logger.error(error);
         next(new InternalServerError('Internal Server Error'));
     }
 };

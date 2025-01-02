@@ -20,12 +20,13 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markAttendance = void 0;
+exports.viewAttendance = exports.markAttendance = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const services_1 = require("../services");
 const enums_1 = require("../enums");
 const successResponse_1 = require("../utils/successResponse");
+const forbidden_error_1 = require("../errors/forbidden.error");
 const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let _a = req.body, { classId, students, studentId, attendanceDetails } = _a, commonAttendanceData = __rest(_a, ["classId", "students", "studentId", "attendanceDetails"]);
@@ -64,3 +65,45 @@ const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.markAttendance = markAttendance;
+const viewAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        const userRole = yield (0, services_1.findRoleById)(userId);
+        const { studentId, date, status } = req.query;
+        let students = [];
+        if (userRole === enums_1.roles.student) {
+            students = [userId];
+        }
+        else if (userRole === enums_1.roles.teacher) {
+            if (studentId) {
+                const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(userId, studentId);
+                if (!isPermittedTeacher)
+                    throw new forbidden_error_1.ForbiddenError('Not permitted to access this student data');
+                students = [studentId];
+            }
+            else {
+                students = yield (0, services_1.getStudentsInAssignedClasses)(userId);
+                if (students.length === 0)
+                    throw new errors_1.NotFoundError('No students in assigned classes');
+            }
+        }
+        else if (studentId) {
+            students = [studentId];
+        }
+        const query = { students };
+        if (date)
+            query.date = date;
+        if (status)
+            query.status = status;
+        const attendanceData = yield (0, services_1.findFilteredAttendance)(query);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Fetched attendance data', attendanceData));
+    }
+    catch (error) {
+        if (error instanceof forbidden_error_1.ForbiddenError || error instanceof errors_1.NotFoundError)
+            return next(error);
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Internal Server Error'));
+    }
+});
+exports.viewAttendance = viewAttendance;

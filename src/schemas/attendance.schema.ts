@@ -2,7 +2,6 @@ import { z } from "zod";
 import { ObjectIdSchema } from "./id.schema";
 import { YYYYMMDDSchema } from "./date.schema";
 import { StatusSchema } from "./status.Schema";
-import { Status } from "../enums";
 
 
 const AttendanceDetailSchema = z.object({
@@ -37,3 +36,10 @@ export const createAttendanceSchema = z.object({
 }, { message: 'Provide exactly one of studentId, students, or classId with required non-optional fields when attendanceDetails is not provided.' });
 
 
+
+
+export const AttendanceQuerySchema = z.object({
+    studentId: ObjectIdSchema.optional(),
+    date: YYYYMMDDSchema.optional(),
+    status: StatusSchema.optional()
+}).strict();

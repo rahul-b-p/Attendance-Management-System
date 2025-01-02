@@ -7,7 +7,7 @@ export const CreateUserSchema = z.object({
     username: z.string({ message: 'Username is Required' }).min(3, "Username is required"),
     email: z.string({ message: "Email is Required" }).email("Invalid email address"),
     password: z.string({ message: "password is required" }).min(6, "Password should be at least 6 characters")
-})
+}).strict();
 
 export const updatedUserSchema = z.object({
     username: z.string().min(3, "Username is required").optional(),
