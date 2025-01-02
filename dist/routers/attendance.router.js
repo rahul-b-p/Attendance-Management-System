@@ -16,4 +16,5 @@ exports.router.get('/filter', (0, middlewares_1.validateRole)(enums_1.roles.admi
 // Attendance Summary
 exports.router.get('/summary', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), (0, middlewares_1.validateReqQuery)(schemas_1.AttendanceSummaryQuerySchema), controllers_1.attendanceController.attendanceSummary);
 // Update Attendance
+exports.router.put('/:id', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), (0, middlewares_1.validateReqBody)(schemas_1.updateAttendanceSchema), controllers_1.attendanceController.updateAttendance);
 // Delete Attendancet

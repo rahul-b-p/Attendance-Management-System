@@ -70,7 +70,7 @@ export const findFilteredAttendance = async (query: AttendanceToFilter): Promise
     }
 }
 
-export const findAttendanceSummary = async (query: AttendanceSummaryQuery): Promise<AttendanceSummary|null> => {
+export const findAttendanceSummary = async (query: AttendanceSummaryQuery): Promise<AttendanceSummary | null> => {
     const { studentId, endDate, startDate } = query
     try {
         const attendanceData = (await Attendance.find({
@@ -92,6 +92,29 @@ export const findAttendanceSummary = async (query: AttendanceSummaryQuery): Prom
             daysAbsent,
             attendancePercentage
         }
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const findAttendanceDataById = async (_id: string): Promise<AttendancesToUse | null> => {
+    try {
+        const exisingAttendanceData = await Attendance.findById({ _id }).lean();
+        if (!exisingAttendanceData) return null
+        else return convertAttendanceToUse(exisingAttendanceData);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const updateAttendanceById = async (_id: string, updateData: Partial<StanderdAttendance>): Promise<AttendancesToUse> => {
+    try {
+        const updatedAttendanceData = await Attendance.findByIdAndUpdate({ _id }, updateData, { new: true });
+        if (!updatedAttendanceData) throw new Error('failed to check user existance before updating');
+        await updatedAttendanceData.save();
+        return convertAttendanceToUse(updatedAttendanceData);
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message);

@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findAttendanceSummary = exports.findFilteredAttendance = exports.insertAttendance = void 0;
+exports.updateAttendanceById = exports.findAttendanceDataById = exports.findAttendanceSummary = exports.findFilteredAttendance = exports.insertAttendance = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -110,3 +110,31 @@ const findAttendanceSummary = (query) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.findAttendanceSummary = findAttendanceSummary;
+const findAttendanceDataById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const exisingAttendanceData = yield models_1.Attendance.findById({ _id }).lean();
+        if (!exisingAttendanceData)
+            return null;
+        else
+            return convertAttendanceToUse(exisingAttendanceData);
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.findAttendanceDataById = findAttendanceDataById;
+const updateAttendanceById = (_id, updateData) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const updatedAttendanceData = yield models_1.Attendance.findByIdAndUpdate({ _id }, updateData, { new: true });
+        if (!updatedAttendanceData)
+            throw new Error('failed to check user existance before updating');
+        yield updatedAttendanceData.save();
+        return convertAttendanceToUse(updatedAttendanceData);
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.updateAttendanceById = updateAttendanceById;

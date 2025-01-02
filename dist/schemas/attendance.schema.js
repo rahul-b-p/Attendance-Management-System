@@ -11,7 +11,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AttendanceSummaryQuerySchema = exports.AttendanceSearchQuerySchema = exports.AttendanceQuerySchema = exports.createAttendanceSchema = void 0;
+exports.updateAttendanceSchema = exports.AttendanceSummaryQuerySchema = exports.AttendanceSearchQuerySchema = exports.AttendanceQuerySchema = exports.createAttendanceSchema = void 0;
 const zod_1 = require("zod");
 const id_schema_1 = require("./id.schema");
 const date_schema_1 = require("./date.schema");
@@ -67,3 +67,11 @@ exports.AttendanceSummaryQuerySchema = zod_1.z.object({
     startDate: date_schema_1.YYYYMMDDSchema,
     endDate: date_schema_1.YYYYMMDDSchema
 }).strict();
+exports.updateAttendanceSchema = zod_1.z.object({
+    studentId: id_schema_1.ObjectIdSchema.optional(),
+    date: date_schema_1.YYYYMMDDSchema.optional(),
+    status: status_Schema_1.StatusSchema.optional(),
+    remarks: zod_1.z.string().optional(),
+}).strict().refine((data) => data.date || data.studentId || data.status || data.remarks, {
+    message: "required atleaast any of StudentId,date,status or remarks"
+});

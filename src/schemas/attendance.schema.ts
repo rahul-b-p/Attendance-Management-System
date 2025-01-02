@@ -36,14 +36,13 @@ export const createAttendanceSchema = z.object({
 }, { message: 'Provide exactly one of studentId, students, or classId with required non-optional fields when attendanceDetails is not provided.' });
 
 
-
-
 export const AttendanceQuerySchema = z.object({
     studentId: ObjectIdSchema.optional(),
     date: YYYYMMDDSchema.optional(),
     status: StatusSchema.optional(),
 
 }).strict();
+
 
 export const AttendanceSearchQuerySchema = z.object({
     studentId: ObjectIdSchema.optional(),
@@ -59,8 +58,22 @@ export const AttendanceSearchQuerySchema = z.object({
     message: "Only 'date' or both 'startDate' and 'endDate' are allowed in the query at a time."
 });
 
+
 export const AttendanceSummaryQuerySchema = z.object({
     studentId: ObjectIdSchema,
     startDate: YYYYMMDDSchema,
     endDate: YYYYMMDDSchema
 }).strict();
+
+
+export const updateAttendanceSchema = z.object({
+    studentId: ObjectIdSchema.optional(),
+    date: YYYYMMDDSchema.optional(),
+    status: StatusSchema.optional(),
+    remarks: z.string().optional(),
+}).strict().refine((data) =>
+    data.date || data.studentId || data.status || data.remarks,
+    {
+        message: "required atleaast any of StudentId,date,status or remarks"
+    }
+);

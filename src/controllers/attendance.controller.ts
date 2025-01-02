@@ -2,12 +2,13 @@ import { NextFunction, Response } from "express";
 import { customRequestWithPayload } from "../interfaces";
 import { logger } from "../utils/logger";
 import { BadRequestError, InternalServerError, NotFoundError } from "../errors";
-import { AttendanceQuery, AttendanceSearchQuery, AttendanceSummaryQuery, CreateAttendanceBody } from "../types";
-import { findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, userExistsById } from "../services";
+import { AttendanceQuery, AttendanceSearchQuery, AttendanceSummaryQuery, CreateAttendanceBody, StanderdAttendance } from "../types";
+import { findAttendanceDataById, findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, updateAttendanceById } from "../services";
 import { roles } from "../enums";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { ForbiddenError } from "../errors/forbidden.error";
 import { groupByDate } from "../helpers";
+import { isValidObjectId } from "../utils/objectIdValidator";
 
 
 
@@ -170,12 +171,49 @@ export const attendanceSummary = async (req: customRequestWithPayload<{}, any, a
         }
         const existingStudent = await findUserById(studentId);
         if (!existingStudent) throw new NotFoundError('Requested Student not found');
-        else if (existingStudent.role !== roles.student) throw new BadRequestError('Requested Id not belongs to a student')
+        else if (existingStudent.role !== roles.student) throw new BadRequestError('Requested StudentId not belongs to a student');
 
         const AttendanceSummaryData = await findAttendanceSummary(req.query);
         if (!AttendanceSummaryData) throw new NotFoundError('Not found any attendance records for requested student');
 
         res.status(200).json(await sendSuccessResponse('Fetched Attendance Summary', AttendanceSummaryData));
+    } catch (error) {
+        if (error instanceof ForbiddenError || error instanceof NotFoundError || error instanceof BadRequestError) return next(error);
+
+        logger.error(error);
+        next(new InternalServerError('Internal Server Error'));
+    }
+}
+
+export const updateAttendance = async (req: customRequestWithPayload<{ id: string }, any, Partial<StanderdAttendance>>, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userId = req.payload?.id as string;
+        let { studentId } = req.body;
+        const isValidId = isValidObjectId(id);
+        if (!isValidId) throw new BadRequestError('Requested with anInvalid Id');
+
+        const userRole = await findRoleById(userId) as roles;
+
+        if (studentId) {
+            const existingStudent = await findUserById(studentId);
+            if (!existingStudent) throw new NotFoundError('Not found the requested student');
+            if (existingStudent.role !== roles.student) throw new BadRequestError('Requested studentId not belongs to a student');
+        }
+        else {
+            const attendanceData = await findAttendanceDataById(id);
+            if (!attendanceData) throw new NotFoundError('Not found any attendance data with requested id');
+            studentId = attendanceData.studentId.toString();
+        }
+
+        if (userRole == roles.teacher) {
+            const isPermittedTeacher = await isStudentInAssignedClass(userId, studentId);
+            if (!isPermittedTeacher) throw new ForbiddenError('You have no permission to update this attendance data');
+        }
+
+        logger.info(req.body)
+        const updatedAttendanceData = await updateAttendanceById(id, req.body);
+        res.status(200).json(await sendSuccessResponse('Attendance updated successfully', updatedAttendanceData));
     } catch (error) {
         if (error instanceof ForbiddenError || error instanceof NotFoundError || error instanceof BadRequestError) return next(error);
 

@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.attendanceSummary = exports.filterAndSearchAttendance = exports.viewAttendance = exports.markAttendance = void 0;
+exports.updateAttendance = exports.attendanceSummary = exports.filterAndSearchAttendance = exports.viewAttendance = exports.markAttendance = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const services_1 = require("../services");
@@ -28,6 +28,7 @@ const enums_1 = require("../enums");
 const successResponse_1 = require("../utils/successResponse");
 const forbidden_error_1 = require("../errors/forbidden.error");
 const helpers_1 = require("../helpers");
+const objectIdValidator_1 = require("../utils/objectIdValidator");
 const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let _a = req.body, { classId, students, studentId, attendanceDetails } = _a, commonAttendanceData = __rest(_a, ["classId", "students", "studentId", "attendanceDetails"]);
@@ -184,7 +185,7 @@ const attendanceSummary = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         if (!existingStudent)
             throw new errors_1.NotFoundError('Requested Student not found');
         else if (existingStudent.role !== enums_1.roles.student)
-            throw new errors_1.BadRequestError('Requested Id not belongs to a student');
+            throw new errors_1.BadRequestError('Requested StudentId not belongs to a student');
         const AttendanceSummaryData = yield (0, services_1.findAttendanceSummary)(req.query);
         if (!AttendanceSummaryData)
             throw new errors_1.NotFoundError('Not found any attendance records for requested student');
@@ -198,3 +199,43 @@ const attendanceSummary = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.attendanceSummary = attendanceSummary;
+const updateAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        let { studentId } = req.body;
+        const isValidId = (0, objectIdValidator_1.isValidObjectId)(id);
+        if (!isValidId)
+            throw new errors_1.BadRequestError('Requested with anInvalid Id');
+        const userRole = yield (0, services_1.findRoleById)(userId);
+        if (studentId) {
+            const existingStudent = yield (0, services_1.findUserById)(studentId);
+            if (!existingStudent)
+                throw new errors_1.NotFoundError('Not found the requested student');
+            if (existingStudent.role !== enums_1.roles.student)
+                throw new errors_1.BadRequestError('Requested studentId not belongs to a student');
+        }
+        else {
+            const attendanceData = yield (0, services_1.findAttendanceDataById)(id);
+            if (!attendanceData)
+                throw new errors_1.NotFoundError('Not found any attendance data with requested id');
+            studentId = attendanceData.studentId.toString();
+        }
+        if (userRole == enums_1.roles.teacher) {
+            const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(userId, studentId);
+            if (!isPermittedTeacher)
+                throw new forbidden_error_1.ForbiddenError('You have no permission to update this attendance data');
+        }
+        logger_1.logger.info(req.body);
+        const updatedAttendanceData = yield (0, services_1.updateAttendanceById)(id, req.body);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Attendance updated successfully', updatedAttendanceData));
+    }
+    catch (error) {
+        if (error instanceof forbidden_error_1.ForbiddenError || error instanceof errors_1.NotFoundError || error instanceof errors_1.BadRequestError)
+            return next(error);
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Internal Server Error'));
+    }
+});
+exports.updateAttendance = updateAttendance;
