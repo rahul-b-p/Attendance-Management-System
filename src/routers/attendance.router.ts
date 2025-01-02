@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { validateReqBody, validateReqQuery, validateRole } from "../middlewares";
 import { roles } from "../enums";
-import { AttendanceQuerySchema, AttendanceSearchQuerySchema, createAttendanceSchema } from "../schemas";
+import { AttendanceQuerySchema, AttendanceSearchQuerySchema, AttendanceSummaryQuerySchema, createAttendanceSchema } from "../schemas";
 import { attendanceController } from "../controllers";
 
 
@@ -17,7 +17,7 @@ router.get('/', validateReqQuery(AttendanceQuerySchema), attendanceController.vi
 router.get('/filter', validateRole(roles.admin, roles.teacher), validateReqQuery(AttendanceSearchQuerySchema), attendanceController.filterAndSearchAttendance);
 
 // Attendance Summary
-
+router.get('/summary', validateRole(roles.admin, roles.teacher), validateReqQuery(AttendanceSummaryQuerySchema), attendanceController.attendanceSummary);
 
 // Update Attendance
 

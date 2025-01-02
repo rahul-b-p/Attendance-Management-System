@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.filterAndSearchAttendance = exports.viewAttendance = exports.markAttendance = void 0;
+exports.attendanceSummary = exports.filterAndSearchAttendance = exports.viewAttendance = exports.markAttendance = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const services_1 = require("../services");
@@ -135,9 +135,8 @@ const filterAndSearchAttendance = (req, res, next) => __awaiter(void 0, void 0, 
             students = [studentId];
         }
         const query = {};
-        if (students.length > 0) {
+        if (students.length > 0)
             query.students = students;
-        }
         if (date)
             query.date = date;
         else if (startDate) {
@@ -163,8 +162,39 @@ const filterAndSearchAttendance = (req, res, next) => __awaiter(void 0, void 0, 
         res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Fetched filtered Attendence Data', ResponseData));
     }
     catch (error) {
+        if (error instanceof forbidden_error_1.ForbiddenError || error instanceof errors_1.NotFoundError)
+            return next(error);
         logger_1.logger.error(error);
         next(new errors_1.InternalServerError('Internal Server Error'));
     }
 });
 exports.filterAndSearchAttendance = filterAndSearchAttendance;
+const attendanceSummary = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        const userRole = yield (0, services_1.findRoleById)(userId);
+        const { studentId } = req.query;
+        if (userRole == enums_1.roles.teacher) {
+            const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(userId, studentId);
+            if (!isPermittedTeacher)
+                throw new forbidden_error_1.ForbiddenError('Not permitted to access this student data');
+        }
+        const existingStudent = yield (0, services_1.findUserById)(studentId);
+        if (!existingStudent)
+            throw new errors_1.NotFoundError('Requested Student not found');
+        else if (existingStudent.role !== enums_1.roles.student)
+            throw new errors_1.BadRequestError('Requested Id not belongs to a student');
+        const AttendanceSummaryData = yield (0, services_1.findAttendanceSummary)(req.query);
+        if (!AttendanceSummaryData)
+            throw new errors_1.NotFoundError('Not found any attendance records for requested student');
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Fetched Attendance Summary', AttendanceSummaryData));
+    }
+    catch (error) {
+        if (error instanceof forbidden_error_1.ForbiddenError || error instanceof errors_1.NotFoundError || error instanceof errors_1.BadRequestError)
+            return next(error);
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Internal Server Error'));
+    }
+});
+exports.attendanceSummary = attendanceSummary;

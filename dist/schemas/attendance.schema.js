@@ -11,7 +11,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AttendanceSearchQuerySchema = exports.AttendanceQuerySchema = exports.createAttendanceSchema = void 0;
+exports.AttendanceSummaryQuerySchema = exports.AttendanceSearchQuerySchema = exports.AttendanceQuerySchema = exports.createAttendanceSchema = void 0;
 const zod_1 = require("zod");
 const id_schema_1 = require("./id.schema");
 const date_schema_1 = require("./date.schema");
@@ -62,3 +62,8 @@ exports.AttendanceSearchQuerySchema = zod_1.z.object({
 }, {
     message: "Only 'date' or both 'startDate' and 'endDate' are allowed in the query at a time."
 });
+exports.AttendanceSummaryQuerySchema = zod_1.z.object({
+    studentId: id_schema_1.ObjectIdSchema,
+    startDate: date_schema_1.YYYYMMDDSchema,
+    endDate: date_schema_1.YYYYMMDDSchema
+}).strict();

@@ -58,3 +58,9 @@ export const AttendanceSearchQuerySchema = z.object({
 }, {
     message: "Only 'date' or both 'startDate' and 'endDate' are allowed in the query at a time."
 });
+
+export const AttendanceSummaryQuerySchema = z.object({
+    studentId: ObjectIdSchema,
+    startDate: YYYYMMDDSchema,
+    endDate: YYYYMMDDSchema
+}).strict();

@@ -38,9 +38,24 @@ export type StanderdAttendance = {
 };
 
 export type AttendanceQuery = Partial<Omit<StanderdAttendance, 'remarks'>>;
-export type AttendanceSearchQuery = AttendanceQuery & { 
-    startDate?:YYYYMMDD;
-    endDate?:YYYYMMDD
- }
+
+export type AttendanceSearchQuery = AttendanceQuery & {
+    startDate?: YYYYMMDD;
+    endDate?: YYYYMMDD
+}
+
+export type AttendanceSummaryQuery = {
+    studentId: string;
+    startDate: YYYYMMDD;
+    endDate: YYYYMMDD
+}
 
 export type AttendanceToFilter = Partial<Omit<AttendancesToSave, 'remarks'>>;
+
+export type AttendanceSummary = {
+    studentId: string;
+    totalDays: number;
+    daysPresent: number;
+    daysAbsent: number;
+    attendancePercentage: number;
+}

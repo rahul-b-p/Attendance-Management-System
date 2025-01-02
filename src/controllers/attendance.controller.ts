@@ -2,8 +2,8 @@ import { NextFunction, Response } from "express";
 import { customRequestWithPayload } from "../interfaces";
 import { logger } from "../utils/logger";
 import { BadRequestError, InternalServerError, NotFoundError } from "../errors";
-import { AttendanceQuery, AttendanceSearchQuery, CreateAttendanceBody } from "../types";
-import { findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass } from "../services";
+import { AttendanceQuery, AttendanceSearchQuery, AttendanceSummaryQuery, CreateAttendanceBody } from "../types";
+import { findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, userExistsById } from "../services";
 import { roles } from "../enums";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { ForbiddenError } from "../errors/forbidden.error";
@@ -83,7 +83,7 @@ export const viewAttendance = async (req: customRequestWithPayload<{}, any, any,
 
         const query: Record<string, any> = {};
 
-        if (students.length>0) {
+        if (students.length > 0) {
             query.students = students;
         }
 
@@ -94,6 +94,7 @@ export const viewAttendance = async (req: customRequestWithPayload<{}, any, any,
         res.status(200).json(await sendSuccessResponse('Fetched attendance data', attendanceData));
     } catch (error) {
         if (error instanceof ForbiddenError || error instanceof NotFoundError) return next(error);
+
         logger.error(error);
         next(new InternalServerError('Internal Server Error'));
     }
@@ -122,9 +123,9 @@ export const filterAndSearchAttendance = async (req: customRequestWithPayload<{}
         }
 
         const query: Record<string, any> = {};
-        if(students.length>0){
-            query.students=students;
-        }
+
+        if (students.length > 0) query.students = students;
+
 
         if (date) query.date = date;
         else if (startDate) {
@@ -150,6 +151,34 @@ export const filterAndSearchAttendance = async (req: customRequestWithPayload<{}
         const ResponseData = groupByDate(attendanceData);
         res.status(200).json(await sendSuccessResponse('Fetched filtered Attendence Data', ResponseData));
     } catch (error) {
+        if (error instanceof ForbiddenError || error instanceof NotFoundError) return next(error);
+
+        logger.error(error);
+        next(new InternalServerError('Internal Server Error'));
+    }
+}
+
+export const attendanceSummary = async (req: customRequestWithPayload<{}, any, any, AttendanceSummaryQuery>, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.payload?.id as string;
+        const userRole = await findRoleById(userId) as roles;
+        const { studentId } = req.query;
+
+        if (userRole == roles.teacher) {
+            const isPermittedTeacher = await isStudentInAssignedClass(userId, studentId);
+            if (!isPermittedTeacher) throw new ForbiddenError('Not permitted to access this student data');
+        }
+        const existingStudent = await findUserById(studentId);
+        if (!existingStudent) throw new NotFoundError('Requested Student not found');
+        else if (existingStudent.role !== roles.student) throw new BadRequestError('Requested Id not belongs to a student')
+
+        const AttendanceSummaryData = await findAttendanceSummary(req.query);
+        if (!AttendanceSummaryData) throw new NotFoundError('Not found any attendance records for requested student');
+
+        res.status(200).json(await sendSuccessResponse('Fetched Attendance Summary', AttendanceSummaryData));
+    } catch (error) {
+        if (error instanceof ForbiddenError || error instanceof NotFoundError || error instanceof BadRequestError) return next(error);
+
         logger.error(error);
         next(new InternalServerError('Internal Server Error'));
     }

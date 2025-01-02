@@ -1,5 +1,6 @@
+import { Status } from "../enums";
 import { Attendance } from "../models";
-import { AttendanceQuery, AttendancesToSave, AttendancesToUse, AttendanceToFilter, StanderdAttendance } from "../types";
+import { AttendanceQuery, AttendancesToSave, AttendancesToUse, AttendanceSummary, AttendanceSummaryQuery, AttendanceToFilter, StanderdAttendance } from "../types";
 import { logger } from "../utils/logger";
 
 
@@ -63,6 +64,34 @@ export const findFilteredAttendance = async (query: AttendanceToFilter): Promise
             .lean();
 
         return filteredAttendance.map(convertAttendanceToStanderd);
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const findAttendanceSummary = async (query: AttendanceSummaryQuery): Promise<AttendanceSummary|null> => {
+    const { studentId, endDate, startDate } = query
+    try {
+        const attendanceData = (await Attendance.find({
+            studentId,
+            date: {
+                $gte: startDate,
+                $lte: endDate
+            }
+        }).lean()).map(convertAttendanceToStanderd);
+        const totalDays = attendanceData.length;
+        if (totalDays < 0) return null;
+        const daysPresent = attendanceData.filter(item => item.status !== Status.absent).length;
+        const daysAbsent = attendanceData.filter(item => item.status == Status.absent).length;
+        const attendancePercentage = (daysPresent / totalDays) * 100;
+        return {
+            studentId,
+            totalDays,
+            daysPresent,
+            daysAbsent,
+            attendancePercentage
+        }
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message);

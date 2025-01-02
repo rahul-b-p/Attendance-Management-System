@@ -20,7 +20,8 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findFilteredAttendance = exports.insertAttendance = void 0;
+exports.findAttendanceSummary = exports.findFilteredAttendance = exports.insertAttendance = void 0;
+const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
 const convertAttendanceToUse = (AttendanceData) => {
@@ -79,3 +80,33 @@ const findFilteredAttendance = (query) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.findFilteredAttendance = findFilteredAttendance;
+const findAttendanceSummary = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    const { studentId, endDate, startDate } = query;
+    try {
+        const attendanceData = (yield models_1.Attendance.find({
+            studentId,
+            date: {
+                $gte: startDate,
+                $lte: endDate
+            }
+        }).lean()).map(convertAttendanceToStanderd);
+        const totalDays = attendanceData.length;
+        if (totalDays < 0)
+            return null;
+        const daysPresent = attendanceData.filter(item => item.status !== enums_1.Status.absent).length;
+        const daysAbsent = attendanceData.filter(item => item.status == enums_1.Status.absent).length;
+        const attendancePercentage = (daysPresent / totalDays) * 100;
+        return {
+            studentId,
+            totalDays,
+            daysPresent,
+            daysAbsent,
+            attendancePercentage
+        };
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.findAttendanceSummary = findAttendanceSummary;
