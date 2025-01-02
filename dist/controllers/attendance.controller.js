@@ -20,13 +20,14 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.viewAttendance = exports.markAttendance = void 0;
+exports.filterAndSearchAttendance = exports.viewAttendance = exports.markAttendance = void 0;
 const logger_1 = require("../utils/logger");
 const errors_1 = require("../errors");
 const services_1 = require("../services");
 const enums_1 = require("../enums");
 const successResponse_1 = require("../utils/successResponse");
 const forbidden_error_1 = require("../errors/forbidden.error");
+const helpers_1 = require("../helpers");
 const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let _a = req.body, { classId, students, studentId, attendanceDetails } = _a, commonAttendanceData = __rest(_a, ["classId", "students", "studentId", "attendanceDetails"]);
@@ -91,7 +92,10 @@ const viewAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         else if (studentId) {
             students = [studentId];
         }
-        const query = { students };
+        const query = {};
+        if (students.length > 0) {
+            query.students = students;
+        }
         if (date)
             query.date = date;
         if (status)
@@ -107,3 +111,60 @@ const viewAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.viewAttendance = viewAttendance;
+const filterAndSearchAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
+        const userRole = yield (0, services_1.findRoleById)(userId);
+        const { studentId, date, status, startDate, endDate } = req.query;
+        let students = [];
+        if (userRole === enums_1.roles.teacher) {
+            if (studentId) {
+                const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(userId, studentId);
+                if (!isPermittedTeacher)
+                    throw new forbidden_error_1.ForbiddenError('Not permitted to access this student data');
+                students = [studentId];
+            }
+            else {
+                students = yield (0, services_1.getStudentsInAssignedClasses)(userId);
+                if (students.length === 0)
+                    throw new errors_1.NotFoundError('No students in assigned classes');
+            }
+        }
+        else if (studentId) {
+            students = [studentId];
+        }
+        const query = {};
+        if (students.length > 0) {
+            query.students = students;
+        }
+        if (date)
+            query.date = date;
+        else if (startDate) {
+            query.date = {
+                $gte: startDate,
+            };
+        }
+        else if (endDate) {
+            query.date = {
+                $lte: endDate
+            };
+        }
+        else if (startDate && endDate) {
+            query.date = {
+                $gte: startDate,
+                $lte: endDate
+            };
+        }
+        if (status)
+            query.status = status;
+        const attendanceData = yield (0, services_1.findFilteredAttendance)(query);
+        const ResponseData = (0, helpers_1.groupByDate)(attendanceData);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)('Fetched filtered Attendence Data', ResponseData));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        next(new errors_1.InternalServerError('Internal Server Error'));
+    }
+});
+exports.filterAndSearchAttendance = filterAndSearchAttendance;

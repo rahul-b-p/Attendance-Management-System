@@ -38,5 +38,9 @@ export type StanderdAttendance = {
 };
 
 export type AttendanceQuery = Partial<Omit<StanderdAttendance, 'remarks'>>;
+export type AttendanceSearchQuery = AttendanceQuery & { 
+    startDate?:YYYYMMDD;
+    endDate?:YYYYMMDD
+ }
 
 export type AttendanceToFilter = Partial<Omit<AttendancesToSave, 'remarks'>>;

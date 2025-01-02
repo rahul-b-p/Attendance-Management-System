@@ -13,7 +13,7 @@ export const updatedUserSchema = z.object({
     username: z.string().min(3, "Username is required").optional(),
     email: z.string().email("Invalid email address").optional(),
     password: z.string().min(6, "Password should be at least 6 characters").optional()
-}).refine(
+}).strict().refine(
     (data) => data.username || data.email || data.password,
     {
         message: 'Atleast one of Username, Email, Password is Required on update request',

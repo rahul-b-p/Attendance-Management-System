@@ -12,6 +12,7 @@ exports.router.post('/', (0, middlewares_1.validateRole)(enums_1.roles.admin, en
 // View Attendance
 exports.router.get('/', (0, middlewares_1.validateReqQuery)(schemas_1.AttendanceQuerySchema), controllers_1.attendanceController.viewAttendance);
 // Filter and Search Attendance
+exports.router.get('/filter', (0, middlewares_1.validateRole)(enums_1.roles.admin, enums_1.roles.teacher), (0, middlewares_1.validateReqQuery)(schemas_1.AttendanceSearchQuerySchema), controllers_1.attendanceController.filterAndSearchAttendance);
 // Attendance Summary
 // Update Attendance
-// Delete Attendance
+// Delete Attendancet

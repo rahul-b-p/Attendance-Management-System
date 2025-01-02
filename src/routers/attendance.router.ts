@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { validateReqBody, validateReqQuery, validateRole } from "../middlewares";
 import { roles } from "../enums";
-import { AttendanceQuerySchema, createAttendanceSchema } from "../schemas";
+import { AttendanceQuerySchema, AttendanceSearchQuerySchema, createAttendanceSchema } from "../schemas";
 import { attendanceController } from "../controllers";
 
 
@@ -14,7 +14,7 @@ router.post('/', validateRole(roles.admin, roles.teacher), validateReqBody(creat
 router.get('/', validateReqQuery(AttendanceQuerySchema), attendanceController.viewAttendance);
 
 // Filter and Search Attendance
-
+router.get('/filter', validateRole(roles.admin, roles.teacher), validateReqQuery(AttendanceSearchQuerySchema), attendanceController.filterAndSearchAttendance);
 
 // Attendance Summary
 
@@ -22,4 +22,4 @@ router.get('/', validateReqQuery(AttendanceQuerySchema), attendanceController.vi
 // Update Attendance
 
 
-// Delete Attendance
+// Delete Attendancet

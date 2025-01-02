@@ -5,7 +5,7 @@ import { StatusSchema } from "./status.Schema";
 
 
 const AttendanceDetailSchema = z.object({
-    studentId:ObjectIdSchema,
+    studentId: ObjectIdSchema,
     date: YYYYMMDDSchema,
     status: StatusSchema,
     remarks: z.string().optional(),
@@ -20,7 +20,7 @@ export const createAttendanceSchema = z.object({
     status: StatusSchema.optional(),
     remarks: z.string().optional(),
     attendanceDetails: z.array(AttendanceDetailSchema).optional()
-}).refine((data) => {
+}).strict().refine((data) => {
     if (data.attendanceDetails) {
         const { attendanceDetails, ...rest } = data;
         return Object.keys(rest).every((key) => data[key as keyof typeof data] === undefined);
@@ -41,5 +41,20 @@ export const createAttendanceSchema = z.object({
 export const AttendanceQuerySchema = z.object({
     studentId: ObjectIdSchema.optional(),
     date: YYYYMMDDSchema.optional(),
-    status: StatusSchema.optional()
+    status: StatusSchema.optional(),
+
 }).strict();
+
+export const AttendanceSearchQuerySchema = z.object({
+    studentId: ObjectIdSchema.optional(),
+    date: YYYYMMDDSchema.optional(),
+    status: StatusSchema.optional(),
+    startDate: YYYYMMDDSchema.optional(),
+    endDate: YYYYMMDDSchema.optional()
+}).strict().refine((data) => {
+    return (data.date && !data.startDate && !data.endDate) ||
+        (!data.date && data.startDate && data.endDate) ||
+        (!data.date && !data.startDate && !data.endDate);
+}, {
+    message: "Only 'date' or both 'startDate' and 'endDate' are allowed in the query at a time."
+});
