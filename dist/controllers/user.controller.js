@@ -74,9 +74,15 @@ const updateUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         const existingRole = yield (0, services_1.findRoleById)(id);
         const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
         const owner = yield (0, services_1.findUserById)(userId);
-        if (existingRole == enums_1.roles.teacher || existingRole == enums_1.roles.admin) {
-            if (owner.role !== enums_1.roles.admin)
+        if (owner.role == enums_1.roles.teacher) {
+            if (existingRole == enums_1.roles.student) {
+                const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(owner._id.toString(), id);
+                if (!isPermittedTeacher)
+                    return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
+            }
+            else {
                 return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
+            }
         }
         const { role } = req.body;
         if (role && owner.role !== enums_1.roles.admin)
@@ -102,9 +108,15 @@ const deleteUser = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         const existingRole = yield (0, services_1.findRoleById)(id);
         const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
         const owner = yield (0, services_1.findUserById)(userId);
-        if (existingRole == enums_1.roles.teacher || existingRole == enums_1.roles.admin) {
-            if (owner.role !== enums_1.roles.admin)
+        if (owner.role == enums_1.roles.teacher) {
+            if (existingRole == enums_1.roles.student) {
+                const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(owner._id.toString(), id);
+                if (!isPermittedTeacher)
+                    return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
+            }
+            else {
                 return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
+            }
         }
         const isDeleted = yield (0, services_1.DeleteUserById)(id);
         if (!isDeleted)

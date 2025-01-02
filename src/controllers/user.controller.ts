@@ -4,7 +4,7 @@ import { logger } from "../utils/logger";
 import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from "../errors";
 import { CreateUserBody, UpdateUserBody, UserToUse } from "../types";
 import { roles } from "../enums";
-import { DeleteUserById, findRoleById, findUserById, findUserByRole, insertUser, updateUserById, userExistsByEmail } from "../services";
+import { DeleteUserById, findRoleById, findUserById, findUserByRole, insertUser, isStudentInAssignedClass, updateUserById, userExistsByEmail } from "../services";
 import { ForbiddenError } from "../errors/forbidden.error";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { isValidObjectId } from "../utils/objectIdValidator";
@@ -65,9 +65,17 @@ export const updateUser = async (req: customRequestWithPayload<{ id: string }, a
 
         const userId = req.payload?.id as string;
         const owner = await findUserById(userId) as UserToUse;
-        if (existingRole == roles.teacher || existingRole == roles.admin) {
-            if (owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+        if (owner.role == roles.teacher) {
+            if (existingRole == roles.student) {
+                const isPermittedTeacher = await isStudentInAssignedClass(owner._id.toString(), id);
+                if (!isPermittedTeacher) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+            }
+            else {
+                return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+
+            }
         }
+
         const { role } = req.body;
         if (role && owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
 
@@ -90,8 +98,15 @@ export const deleteUser = async (req: customRequestWithPayload<{ id: string }>, 
 
         const userId = req.payload?.id as string;
         const owner = await findUserById(userId) as UserToUse;
-        if (existingRole == roles.teacher || existingRole == roles.admin) {
-            if (owner.role !== roles.admin) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+        if (owner.role == roles.teacher) {
+            if (existingRole == roles.student) {
+                const isPermittedTeacher = await isStudentInAssignedClass(owner._id.toString(), id);
+                if (!isPermittedTeacher) return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+            }
+            else {
+                return next(new ForbiddenError('Forbidden: Insufficient role privileges'));
+
+            }
         }
 
         const isDeleted = await DeleteUserById(id);
