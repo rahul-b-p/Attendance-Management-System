@@ -3,7 +3,7 @@ import { config } from "dotenv";
 import { logger } from './utils/logger';
 import { connectDB } from './connections';
 import { createDefaultAdmin } from './utils/adminSetup';
-import { accessTokenAuth, ErrorHandler, refreshTokenAuth, validateUser } from './middlewares';
+import { accessTokenAuth, ErrorHandler, refreshTokenAuth, setResponseHeaders, validateUser } from './middlewares';
 import { classRouter, attendanceRouter, authRouter, refreshRouter, userRouter } from './routers';
 import { isStudentInAssignedClass } from './services';
 
@@ -16,6 +16,8 @@ connectDB();
 createDefaultAdmin();
 
 app.use(express.json());
+
+app.use(setResponseHeaders);
 
 app.use('/auth', authRouter);
 app.use('/refresh', refreshTokenAuth, refreshRouter);

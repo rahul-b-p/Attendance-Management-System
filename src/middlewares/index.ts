@@ -3,3 +3,4 @@ export * from './auth.middleware';
 export * from './request.middleware';
 export * from './role.middleware';
 export * from './user.middleware';
+export * from './response.middleware';
