@@ -2,9 +2,9 @@ import { Types } from "mongoose";
 import { roles } from "../enums";
 import { User } from "../models";
 import { logger } from "../utils/logger";
-import { CreateUserBody, UpdateUserBody, UserToShowInClass, UserToUse, UserWithoutSensitiveData } from "../types";
+import { classForAddInUser, CreateUserBody, UpdateUserBody, UserToShowInClass, UserToUse, UserWithClassData, UserWithoutSensitiveData } from "../types";
 import { getEncryptedPassword } from "../config";
-import { removeUserIdFromAllClass } from "./class.service";
+import { findClassNameByIds, removeUserIdFromAllClass } from "./class.service";
 import { deleteAttendanceByStudentId } from "./attendance.service";
 
 
@@ -16,7 +16,7 @@ const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
         role: userData.role
     };
 }
-const checkStudentAndDeleteAttendance = (userData: UserToUse):Promise<boolean> => {
+const checkStudentAndDeleteAttendance = (userData: UserToUse): Promise<boolean> => {
     if (userData.role !== roles.student) {
         return new Promise((resolve, reject) => {
             resolve(true)
@@ -274,3 +274,31 @@ export const removeIdFromClasses = async (students: string[], classId: string): 
     }
 }
 
+export const fetchUsersClassData = async (userData: UserWithoutSensitiveData[]):Promise<UserWithClassData[]> => {
+    try {
+        return await Promise.all(
+            userData.map(async (user) => {
+                let assignedClasses;
+                let classes;
+                if (user.assignedClasses) {
+                    assignedClasses = await findClassNameByIds(user.assignedClasses);
+                }
+                if (user.classes) {
+                    classes = await findClassNameByIds(user.classes)
+                }
+                return {
+                    _id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                    assignedClasses,
+                    classes
+                }
+            }
+            )
+        )
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message)
+    }
+}

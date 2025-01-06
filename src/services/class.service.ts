@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { roles } from "../enums";
 import { Class } from "../models";
-import { ClassToUse, ClassWithUserData, CreateClassBody, UserToUse } from "../types";
+import { classForAddInUser, ClassToUse, ClassWithUserData, CreateClassBody, UserToUse } from "../types";
 import { logger } from "../utils/logger";
 import { addToAssignClasses, addToClasses, findUserById, findUsersInClass, removeIdFromAssignClasses, removeIdFromClasses } from "./user.service";
 
@@ -198,3 +198,22 @@ export const getStudentsInAssignedClasses = async (teacherId: string): Promise<s
         throw new Error(error.message);
     }
 };
+
+export const findClassNameByIds = async (classes: Types.ObjectId[]): Promise<classForAddInUser[]> => {
+    try {
+        const allClasses = (await Class.find({ _id: { $in: classes } }).lean()).map(toClassToUse);
+
+        const transformedClass: classForAddInUser[] = await Promise.all(allClasses.map(async (user) => {
+            const teacherDetails = await findUsersInClass(user.teachers);
+            const studentDetails = await findUsersInClass(user.students)
+            return {
+                classId: user._id,
+                className: user.className,
+            }
+        }));
+        return transformedClass;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}

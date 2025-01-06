@@ -56,7 +56,8 @@ const readUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 return next(new forbidden_error_1.ForbiddenError('Forbidden: Insufficient role privileges'));
         }
         const allUsersWithRole = yield (0, services_1.findUserByRole)(role);
-        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)(`Fetched all ${role}`, allUsersWithRole));
+        const UsersData = yield (0, services_1.fetchUsersClassData)(allUsersWithRole);
+        res.status(200).json(yield (0, successResponse_1.sendSuccessResponse)(`Fetched all ${role}`, UsersData));
     }
     catch (error) {
         logger_1.logger.error(error);

@@ -4,7 +4,7 @@ import { logger } from "../utils/logger";
 import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from "../errors";
 import { CreateUserBody, UpdateUserBody, UserToUse } from "../types";
 import { roles } from "../enums";
-import { DeleteUserById, findRoleById, findUserById, findUserByRole, insertUser, isStudentInAssignedClass, updateUserById, userExistsByEmail } from "../services";
+import { DeleteUserById, fetchUsersClassData, findRoleById, findUserById, findUserByRole, insertUser, isStudentInAssignedClass, updateUserById, userExistsByEmail } from "../services";
 import { ForbiddenError } from "../errors/forbidden.error";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { isValidObjectId } from "../utils/objectIdValidator";
@@ -49,7 +49,10 @@ export const readUser = async (req: customRequestWithPayload<{ role: string }>, 
         }
 
         const allUsersWithRole = await findUserByRole(role);
-        res.status(200).json(await sendSuccessResponse(`Fetched all ${role}`, allUsersWithRole));
+        const UsersData = await fetchUsersClassData(allUsersWithRole);
+        res.status(200).json(await sendSuccessResponse(`Fetched all ${role}`, UsersData));
+ 
+
     } catch (error) {
         logger.error(error);
         next(new InternalServerError('Something went wrong'));

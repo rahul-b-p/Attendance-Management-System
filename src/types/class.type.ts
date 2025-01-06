@@ -22,3 +22,8 @@ export type ClassWithUserData = {
     teachers: UserWithoutSensitiveData[];
     students: UserWithoutSensitiveData[];
 }
+
+export type classForAddInUser = {
+    classId: Types.ObjectId;
+    className: string;
+}

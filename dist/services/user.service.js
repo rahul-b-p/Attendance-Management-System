@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeIdFromClasses = exports.removeIdFromAssignClasses = exports.findUsersInClass = exports.addToClasses = exports.addToAssignClasses = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
+exports.fetchUsersClassData = exports.removeIdFromClasses = exports.removeIdFromAssignClasses = exports.findUsersInClass = exports.addToClasses = exports.addToAssignClasses = exports.DeleteUserById = exports.updateUserById = exports.findUserByRole = exports.userExistsByEmail = exports.insertUser = exports.deleteRefreshToken = exports.findUserById = exports.updateRefreshToken = exports.findUserByEmail = exports.userExistsById = exports.findRoleById = exports.checkRefreshTokenExistsById = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -302,3 +302,30 @@ const removeIdFromClasses = (students, classId) => __awaiter(void 0, void 0, voi
     }
 });
 exports.removeIdFromClasses = removeIdFromClasses;
+const fetchUsersClassData = (userData) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        return yield Promise.all(userData.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+            let assignedClasses;
+            let classes;
+            if (user.assignedClasses) {
+                assignedClasses = yield (0, class_service_1.findClassNameByIds)(user.assignedClasses);
+            }
+            if (user.classes) {
+                classes = yield (0, class_service_1.findClassNameByIds)(user.classes);
+            }
+            return {
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                assignedClasses,
+                classes
+            };
+        })));
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.fetchUsersClassData = fetchUsersClassData;

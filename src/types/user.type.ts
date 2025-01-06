@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { roles } from "../enums";
+import { classForAddInUser, ClassToUse, ClassWithUserData } from "./class.type";
 
 
 export type CreateUserBody = {
@@ -24,3 +25,12 @@ export type UserToUse = {
 export type UserWithoutSensitiveData = Omit<UserToUse, ('hashPassword' | 'refreshToken')>;
 
 export type UserToShowInClass = Omit<UserWithoutSensitiveData, ('classes' | 'assignedClasses')>;
+
+export type UserWithClassData = {
+    _id: Types.ObjectId;
+    username: string;
+    email: string;
+    role: roles;
+    assignedClasses?:classForAddInUser[]
+    classes?: classForAddInUser[];
+}

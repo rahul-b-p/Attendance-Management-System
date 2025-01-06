@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getStudentsInAssignedClasses = exports.isStudentInAssignedClass = exports.removeUserIdFromAllClass = exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
+exports.findClassNameByIds = exports.getStudentsInAssignedClasses = exports.isStudentInAssignedClass = exports.removeUserIdFromAllClass = exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -206,3 +206,22 @@ const getStudentsInAssignedClasses = (teacherId) => __awaiter(void 0, void 0, vo
     }
 });
 exports.getStudentsInAssignedClasses = getStudentsInAssignedClasses;
+const findClassNameByIds = (classes) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const allClasses = (yield models_1.Class.find({ _id: { $in: classes } }).lean()).map(toClassToUse);
+        const transformedClass = yield Promise.all(allClasses.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+            const teacherDetails = yield (0, user_service_1.findUsersInClass)(user.teachers);
+            const studentDetails = yield (0, user_service_1.findUsersInClass)(user.students);
+            return {
+                classId: user._id,
+                className: user.className,
+            };
+        })));
+        return transformedClass;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.findClassNameByIds = findClassNameByIds;
