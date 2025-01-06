@@ -42,6 +42,11 @@ const attendanceSchema = new mongoose_1.Schema({
         ref: 'users',
         required: true
     },
+    classId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'classes',
+        required: true
+    },
     date: {
         type: String,
         required: true,

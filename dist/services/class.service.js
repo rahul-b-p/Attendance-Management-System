@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findClassNameByIds = exports.getStudentsInAssignedClasses = exports.isStudentInAssignedClass = exports.removeUserIdFromAllClass = exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
+exports.findClassNameByIds = exports.getStudentsInAssignedClasses = exports.isClassExistsById = exports.isStudentInClass = exports.isTeacherInchargeOfClass = exports.isStudentInAssignedClass = exports.removeUserIdFromAllClass = exports.deleteClassById = exports.removeStudentFromClass = exports.removeTeachersFromClass = exports.addStudentToClass = exports.findClassById = exports.assignTeacherToClass = exports.findAllClass = exports.insertClass = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -190,6 +190,48 @@ const isStudentInAssignedClass = (teacherId, studentId) => __awaiter(void 0, voi
     }
 });
 exports.isStudentInAssignedClass = isStudentInAssignedClass;
+const isTeacherInchargeOfClass = (_id, teacherId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const existingClass = yield models_1.Class.findOne({ _id, teachers: teacherId }).exec();
+        if (existingClass)
+            return true;
+        else
+            return false;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.isTeacherInchargeOfClass = isTeacherInchargeOfClass;
+const isStudentInClass = (_id, studentId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const existingClass = yield models_1.Class.findOne({ _id, students: studentId });
+        if (!existingClass)
+            return false;
+        else
+            return true;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.isStudentInClass = isStudentInClass;
+const isClassExistsById = (_id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const existingClass = yield models_1.Class.exists({ _id });
+        if (existingClass)
+            return true;
+        else
+            return false;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.isClassExistsById = isClassExistsById;
 const getStudentsInAssignedClasses = (teacherId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { assignedClasses } = yield (0, user_service_1.findUserById)(teacherId);

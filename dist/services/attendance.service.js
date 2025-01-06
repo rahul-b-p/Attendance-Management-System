@@ -20,7 +20,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAttendanceByStudentId = exports.deleteAttendanceById = exports.updateAttendanceById = exports.findAttendanceDataById = exports.findAttendanceSummary = exports.findFilteredAttendance = exports.insertAttendance = void 0;
+exports.isAttendanceMarked = exports.deleteAttendanceByStudentId = exports.deleteAttendanceById = exports.updateAttendanceById = exports.findAttendanceDataById = exports.findAttendanceSummary = exports.findFilteredAttendance = exports.insertAttendance = void 0;
 const enums_1 = require("../enums");
 const models_1 = require("../models");
 const logger_1 = require("../utils/logger");
@@ -28,6 +28,7 @@ const convertAttendanceToUse = (AttendanceData) => {
     return {
         _id: AttendanceData._id,
         studentId: AttendanceData.studentId,
+        classId: AttendanceData.classId,
         date: AttendanceData.date,
         status: AttendanceData.status,
         remarks: AttendanceData.remarks,
@@ -42,23 +43,14 @@ const convertAttendanceToStanderd = (AttendanceData) => {
         remarks: AttendanceData.remarks
     };
 };
-const insertAttendance = (manyToOneAttendance, manyToManyAttendance) => __awaiter(void 0, void 0, void 0, function* () {
+const insertAttendance = (attendanceData) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (manyToOneAttendance && manyToManyAttendance)
-            throw new Error('Provide only one argument.');
-        if (!manyToOneAttendance && !manyToManyAttendance)
-            throw new Error('At least one argument is required.');
-        const attendanceData = manyToOneAttendance ? manyToOneAttendance.students.map((studentId) => ({
-            studentId,
-            date: manyToOneAttendance.date,
-            status: manyToOneAttendance.status,
-            remarks: manyToOneAttendance.remarks,
-        })) : manyToManyAttendance;
-        if (!(attendanceData === null || attendanceData === void 0 ? void 0 : attendanceData.length)) {
-            throw new Error('No attendance data provided.');
-        }
-        const insertedAttendanceData = yield models_1.Attendance.insertMany(attendanceData);
-        return insertedAttendanceData.map(convertAttendanceToUse);
+        const { studentId, classId, date, status, remarks } = attendanceData;
+        const insertedAttendanceData = new models_1.Attendance({
+            studentId, classId, date, status, remarks
+        });
+        yield insertedAttendanceData.save();
+        return convertAttendanceToUse(insertedAttendanceData);
     }
     catch (error) {
         logger_1.logger.error(error);
@@ -160,3 +152,17 @@ const deleteAttendanceByStudentId = (studentId) => __awaiter(void 0, void 0, voi
     }
 });
 exports.deleteAttendanceByStudentId = deleteAttendanceByStudentId;
+const isAttendanceMarked = (date, classId, studentId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const markedAttendance = yield models_1.Attendance.findOne({ studentId, classId, date });
+        if (markedAttendance)
+            return true;
+        else
+            return false;
+    }
+    catch (error) {
+        logger_1.logger.error(error);
+        throw new Error(error.message);
+    }
+});
+exports.isAttendanceMarked = isAttendanceMarked;

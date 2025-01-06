@@ -182,6 +182,39 @@ export const isStudentInAssignedClass = async (teacherId: string, studentId: str
     }
 };
 
+export const isTeacherInchargeOfClass = async (_id: string, teacherId: string): Promise<boolean> => {
+    try {
+        const existingClass = await Class.findOne({ _id, teachers: teacherId }).exec();
+        if (existingClass) return true;
+        else return false;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message)
+    }
+}
+
+export const isStudentInClass = async (_id: string, studentId: string): Promise<boolean> => {
+    try {
+        const existingClass = await Class.findOne({ _id, students: studentId })
+        if (!existingClass) return false
+        else return true;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message)
+    }
+}
+
+export const isClassExistsById = async (_id: string): Promise<boolean> => {
+    try {
+        const existingClass = await Class.exists({ _id });
+        if (existingClass) return true;
+        else return false;
+    } catch (error:any) {
+        logger.error(error);
+        throw new Error(error.message)
+    }
+}
+
 export const getStudentsInAssignedClasses = async (teacherId: string): Promise<string[]> => {
     try {
         const { assignedClasses } = await findUserById(teacherId) as UserToUse;

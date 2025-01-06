@@ -10,6 +10,11 @@ const attendanceSchema = new Schema<IAttendance>({
         ref: 'users',
         required: true
     },
+    classId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'classes',
+        required: true
+    },
     date: {
         type: String,
         required: true,

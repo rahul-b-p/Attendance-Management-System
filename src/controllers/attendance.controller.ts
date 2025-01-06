@@ -1,9 +1,9 @@
 import { NextFunction, Response } from "express";
 import { customRequestWithPayload } from "../interfaces";
 import { logger } from "../utils/logger";
-import { BadRequestError, InternalServerError, NotFoundError } from "../errors";
+import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from "../errors";
 import { AttendanceQuery, AttendanceSearchQuery, AttendanceSummaryQuery, CreateAttendanceBody, StanderdAttendance } from "../types";
-import { deleteAttendanceById, findAttendanceDataById, findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, updateAttendanceById, userExistsById } from "../services";
+import { deleteAttendanceById, findAttendanceDataById, findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isAttendanceMarked, isClassExistsById, isStudentInAssignedClass, isStudentInClass, isTeacherInchargeOfClass, updateAttendanceById, userExistsById } from "../services";
 import { DateStatus, roles } from "../enums";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { ForbiddenError } from "../errors/forbidden.error";
@@ -18,53 +18,34 @@ export const markAttendance = async (req: customRequestWithPayload<{}, any, Crea
     try {
         const userId = req.payload?.id as string;
         const userRole = await findRoleById(userId) as roles;
-        let { classId, students, studentId, attendanceDetails, ...commonAttendanceData } = req.body;
+        const { classId, studentId, date } = req.body;
 
-        const { date } = commonAttendanceData;
         const dateStatus = compareDates(date);
         if (dateStatus == DateStatus.Future) throw new BadRequestError("Can't add attendance for future");
         else if (userRole == roles.teacher && dateStatus !== DateStatus.Present) throw new BadRequestError('Can only add current date attendance');
 
-        if (classId) {
-            const existingClass = await findClassById(classId);
-            if (!existingClass) throw new NotFoundError('Class not found');
-            if (existingClass.students.length <= 0) throw new BadRequestError('No students in this class');
-            if (userRole == roles.teacher) {
-                if (existingClass.teachers.includes(userId)) throw new ForbiddenError(`You have no permission to take action on class: ${classId}`);
-            }
-            students = existingClass.students;
+        const isClassExists = await isClassExistsById(classId);
+        if (!isClassExists) throw new NotFoundError('Not Found any class with requested id');
+
+        if (userRole == roles.teacher) {
+            const isPermittedTeacher = await isTeacherInchargeOfClass(classId, userId);
+            if (!isPermittedTeacher) throw new ForbiddenError("You are not permitted to mark attendance for this class");
         }
 
-        if (studentId) {
-            students = [studentId];
-        }
+        const studentExist = await userExistsById(studentId);
+        if (!studentExist) throw new NotFoundError('Not found any student with requested id');
 
-        if (!students && !attendanceDetails) throw new Error('Students or attendanceDetails must be provided');
+        const isStudentPresentInClass = await isStudentInClass(classId, studentId);
+        if (!isStudentPresentInClass) throw new NotFoundError('the requsted student not in the class');
 
-        if (students) {
-            await Promise.all(students.map(async (studentId) => {
-                const existingStudent = await findUserById(studentId);
-                if (!existingStudent || existingStudent.role !== roles.student) {
-                    throw new NotFoundError(`Student not found: ${studentId}`);
-                }
-                if (userRole == roles.teacher) {
-                    const isPermittedTeacher = await isStudentInAssignedClass(userId, studentId);
-                    if (!isPermittedTeacher) throw new ForbiddenError(`You have no permission to take action on student ${studentId}`);
-                }
-            }));
-        }
+        const isAttendanceAlreadyMarked = await isAttendanceMarked(date, classId, studentId);
+        if (isAttendanceAlreadyMarked) throw new ConflictError('Attendance is already marked for the date, try to update if any change needs');
 
-        if (attendanceDetails && attendanceDetails.length <= 0) throw new BadRequestError('not Provided Attendance Details')
-
-        const insertedAttendanceData = await insertAttendance(
-            students ? { ...commonAttendanceData, students } : undefined,
-            attendanceDetails
-        );
-
+        const insertedAttendanceData = await insertAttendance(req.body)
         res.status(201).json(await sendSuccessResponse('Attendance marked successfully', insertedAttendanceData));
 
     } catch (error) {
-        if (error instanceof NotFoundError || error instanceof BadRequestError || error instanceof ForbiddenError) {
+        if (error instanceof NotFoundError || error instanceof BadRequestError || error instanceof ForbiddenError || error instanceof ConflictError) {
             return next(error);
         }
         logger.error(error);

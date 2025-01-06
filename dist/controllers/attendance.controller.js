@@ -8,17 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteAttendance = exports.updateAttendance = exports.attendanceSummary = exports.filterAndSearchAttendance = exports.viewAttendance = exports.markAttendance = void 0;
 const logger_1 = require("../utils/logger");
@@ -35,50 +24,34 @@ const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     try {
         const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
         const userRole = yield (0, services_1.findRoleById)(userId);
-        let _b = req.body, { classId, students, studentId, attendanceDetails } = _b, commonAttendanceData = __rest(_b, ["classId", "students", "studentId", "attendanceDetails"]);
-        const { date } = commonAttendanceData;
+        const { classId, studentId, date } = req.body;
         const dateStatus = (0, dateUtils_1.compareDates)(date);
         if (dateStatus == enums_1.DateStatus.Future)
             throw new errors_1.BadRequestError("Can't add attendance for future");
         else if (userRole == enums_1.roles.teacher && dateStatus !== enums_1.DateStatus.Present)
             throw new errors_1.BadRequestError('Can only add current date attendance');
-        if (classId) {
-            const existingClass = yield (0, services_1.findClassById)(classId);
-            if (!existingClass)
-                throw new errors_1.NotFoundError('Class not found');
-            if (existingClass.students.length <= 0)
-                throw new errors_1.BadRequestError('No students in this class');
-            if (userRole == enums_1.roles.teacher) {
-                if (existingClass.teachers.includes(userId))
-                    throw new forbidden_error_1.ForbiddenError(`You have no permission to take action on class: ${classId}`);
-            }
-            students = existingClass.students;
+        const isClassExists = yield (0, services_1.isClassExistsById)(classId);
+        if (!isClassExists)
+            throw new errors_1.NotFoundError('Not Found any class with requested id');
+        if (userRole == enums_1.roles.teacher) {
+            const isPermittedTeacher = yield (0, services_1.isTeacherInchargeOfClass)(classId, userId);
+            if (!isPermittedTeacher)
+                throw new forbidden_error_1.ForbiddenError("You are not permitted to mark attendance for this class");
         }
-        if (studentId) {
-            students = [studentId];
-        }
-        if (!students && !attendanceDetails)
-            throw new Error('Students or attendanceDetails must be provided');
-        if (students) {
-            yield Promise.all(students.map((studentId) => __awaiter(void 0, void 0, void 0, function* () {
-                const existingStudent = yield (0, services_1.findUserById)(studentId);
-                if (!existingStudent || existingStudent.role !== enums_1.roles.student) {
-                    throw new errors_1.NotFoundError(`Student not found: ${studentId}`);
-                }
-                if (userRole == enums_1.roles.teacher) {
-                    const isPermittedTeacher = yield (0, services_1.isStudentInAssignedClass)(userId, studentId);
-                    if (!isPermittedTeacher)
-                        throw new forbidden_error_1.ForbiddenError(`You have no permission to take action on student ${studentId}`);
-                }
-            })));
-        }
-        if (attendanceDetails && attendanceDetails.length <= 0)
-            throw new errors_1.BadRequestError('not Provided Attendance Details');
-        const insertedAttendanceData = yield (0, services_1.insertAttendance)(students ? Object.assign(Object.assign({}, commonAttendanceData), { students }) : undefined, attendanceDetails);
+        const studentExist = yield (0, services_1.userExistsById)(studentId);
+        if (!studentExist)
+            throw new errors_1.NotFoundError('Not found any student with requested id');
+        const isStudentPresentInClass = yield (0, services_1.isStudentInClass)(classId, studentId);
+        if (!isStudentPresentInClass)
+            throw new errors_1.NotFoundError('the requsted student not in the class');
+        const isAttendanceAlreadyMarked = yield (0, services_1.isAttendanceMarked)(date, classId, studentId);
+        if (isAttendanceAlreadyMarked)
+            throw new errors_1.ConflictError('Attendance is already marked for the date, try to update if any change needs');
+        const insertedAttendanceData = yield (0, services_1.insertAttendance)(req.body);
         res.status(201).json(yield (0, successResponse_1.sendSuccessResponse)('Attendance marked successfully', insertedAttendanceData));
     }
     catch (error) {
-        if (error instanceof errors_1.NotFoundError || error instanceof errors_1.BadRequestError || error instanceof forbidden_error_1.ForbiddenError) {
+        if (error instanceof errors_1.NotFoundError || error instanceof errors_1.BadRequestError || error instanceof forbidden_error_1.ForbiddenError || error instanceof errors_1.ConflictError) {
             return next(error);
         }
         logger_1.logger.error(error);

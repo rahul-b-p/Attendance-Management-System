@@ -1,6 +1,6 @@
 import { Status } from "../enums";
 import { Attendance } from "../models";
-import { AttendanceQuery, AttendancesToSave, AttendancesToUse, AttendanceSummary, AttendanceSummaryQuery, AttendanceToFilter, StanderdAttendance } from "../types";
+import { AttendanceQuery, AttendancesToUse, AttendanceSummary, AttendanceSummaryQuery, AttendanceToFilter, CreateAttendanceBody, StanderdAttendance, YYYYMMDD } from "../types";
 import { logger } from "../utils/logger";
 
 
@@ -8,6 +8,7 @@ const convertAttendanceToUse = (AttendanceData: any): AttendancesToUse => {
     return {
         _id: AttendanceData._id,
         studentId: AttendanceData.studentId,
+        classId: AttendanceData.classId,
         date: AttendanceData.date,
         status: AttendanceData.status,
         remarks: AttendanceData.remarks,
@@ -24,27 +25,14 @@ const convertAttendanceToStanderd = (AttendanceData: any): StanderdAttendance =>
 }
 
 
-export const insertAttendance = async (manyToOneAttendance?: AttendancesToSave, manyToManyAttendance?: StanderdAttendance[]): Promise<AttendancesToUse[]> => {
+export const insertAttendance = async (attendanceData: CreateAttendanceBody): Promise<AttendancesToUse> => {
     try {
-        if (manyToOneAttendance && manyToManyAttendance) throw new Error('Provide only one argument.');
-
-        if (!manyToOneAttendance && !manyToManyAttendance) throw new Error('At least one argument is required.');
-
-
-        const attendanceData = manyToOneAttendance ? manyToOneAttendance.students.map((studentId) => ({
-            studentId,
-            date: manyToOneAttendance.date,
-            status: manyToOneAttendance.status,
-            remarks: manyToOneAttendance.remarks,
-        })) : manyToManyAttendance;
-
-        if (!attendanceData?.length) {
-            throw new Error('No attendance data provided.');
-        }
-
-
-        const insertedAttendanceData = await Attendance.insertMany(attendanceData);
-        return insertedAttendanceData.map(convertAttendanceToUse);
+        const { studentId, classId, date, status, remarks } = attendanceData;
+        const insertedAttendanceData = new Attendance({
+            studentId, classId, date, status, remarks
+        });
+        await insertedAttendanceData.save();
+        return convertAttendanceToUse(insertedAttendanceData);
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message);
@@ -134,6 +122,17 @@ export const deleteAttendanceByStudentId = async (studentId: string): Promise<vo
     try {
         await Attendance.deleteMany({ studentId });
         return;
+    } catch (error: any) {
+        logger.error(error);
+        throw new Error(error.message);
+    }
+}
+
+export const isAttendanceMarked = async (date: YYYYMMDD, classId: string, studentId: string) => {
+    try {
+        const markedAttendance = await Attendance.findOne({ studentId, classId, date });
+        if (markedAttendance) return true;
+        else return false
     } catch (error: any) {
         logger.error(error);
         throw new Error(error.message);

@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { validateReqBody, validateReqQuery, validateRole } from "../middlewares";
 import { roles } from "../enums";
-import { AttendanceQuerySchema, AttendanceSearchQuerySchema, AttendanceSummaryQuerySchema, createAttendanceSchema, updateAttendanceSchema } from "../schemas";
+import { AttendanceQuerySchema, AttendanceSearchQuerySchema, AttendanceSummaryQuerySchema, CreateAttendanceSchema, updateAttendanceSchema } from "../schemas";
 import { attendanceController } from "../controllers";
 
 
 export const router = Router();
 
 // Mark Attendance
-router.post('/', validateRole(roles.admin, roles.teacher), validateReqBody(createAttendanceSchema), attendanceController.markAttendance);
+router.post('/', validateRole(roles.admin, roles.teacher), validateReqBody(CreateAttendanceSchema), attendanceController.markAttendance);
 
 // View Attendance
 router.get('/', validateReqQuery(AttendanceQuerySchema), attendanceController.viewAttendance);
