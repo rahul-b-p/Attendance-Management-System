@@ -29,12 +29,19 @@ const successResponse_1 = require("../utils/successResponse");
 const forbidden_error_1 = require("../errors/forbidden.error");
 const helpers_1 = require("../helpers");
 const objectIdValidator_1 = require("../utils/objectIdValidator");
+const dateUtils_1 = require("../utils/dateUtils");
 const markAttendance = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         const userId = (_a = req.payload) === null || _a === void 0 ? void 0 : _a.id;
         const userRole = yield (0, services_1.findRoleById)(userId);
         let _b = req.body, { classId, students, studentId, attendanceDetails } = _b, commonAttendanceData = __rest(_b, ["classId", "students", "studentId", "attendanceDetails"]);
+        const { date } = commonAttendanceData;
+        const dateStatus = (0, dateUtils_1.compareDates)(date);
+        if (dateStatus == enums_1.DateStatus.Future)
+            throw new errors_1.BadRequestError("Can't add attendance for future");
+        else if (userRole == enums_1.roles.teacher && dateStatus !== enums_1.DateStatus.Present)
+            throw new errors_1.BadRequestError('Can only add current date attendance');
         if (classId) {
             const existingClass = yield (0, services_1.findClassById)(classId);
             if (!existingClass)

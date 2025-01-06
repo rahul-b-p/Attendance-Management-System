@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const enums_1 = require("../enums");
-const dateFormat_1 = require("../utils/dateFormat");
+const dateUtils_1 = require("../utils/dateUtils");
 const attendanceSchema = new mongoose_1.Schema({
     studentId: {
         type: mongoose_1.default.Schema.Types.ObjectId,
@@ -58,7 +58,7 @@ const attendanceSchema = new mongoose_1.Schema({
     },
     createAt: {
         type: String,
-        default: (0, dateFormat_1.getCurrentDateTime)()
+        default: (0, dateUtils_1.getCurrentDateTime)()
     }
 });
 const Attendance = mongoose_1.default.model('attendances', attendanceSchema);

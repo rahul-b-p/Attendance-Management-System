@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { IAttendance } from "../interfaces";
 import { Status } from "../enums";
-import { getCurrentDateTime } from "../utils/dateFormat";
+import { getCurrentDateTime } from "../utils/dateUtils";
 
 
 const attendanceSchema = new Schema<IAttendance>({

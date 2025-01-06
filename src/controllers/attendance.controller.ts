@@ -4,11 +4,12 @@ import { logger } from "../utils/logger";
 import { BadRequestError, InternalServerError, NotFoundError } from "../errors";
 import { AttendanceQuery, AttendanceSearchQuery, AttendanceSummaryQuery, CreateAttendanceBody, StanderdAttendance } from "../types";
 import { deleteAttendanceById, findAttendanceDataById, findAttendanceSummary, findClassById, findFilteredAttendance, findRoleById, findUserById, getStudentsInAssignedClasses, insertAttendance, isStudentInAssignedClass, updateAttendanceById, userExistsById } from "../services";
-import { roles } from "../enums";
+import { DateStatus, roles } from "../enums";
 import { sendSuccessResponse } from "../utils/successResponse";
 import { ForbiddenError } from "../errors/forbidden.error";
 import { groupByDate } from "../helpers";
 import { isValidObjectId } from "../utils/objectIdValidator";
+import { compareDates } from "../utils/dateUtils";
 
 
 
@@ -18,6 +19,11 @@ export const markAttendance = async (req: customRequestWithPayload<{}, any, Crea
         const userId = req.payload?.id as string;
         const userRole = await findRoleById(userId) as roles;
         let { classId, students, studentId, attendanceDetails, ...commonAttendanceData } = req.body;
+
+        const { date } = commonAttendanceData;
+        const dateStatus = compareDates(date);
+        if (dateStatus == DateStatus.Future) throw new BadRequestError("Can't add attendance for future");
+        else if (userRole == roles.teacher && dateStatus !== DateStatus.Present) throw new BadRequestError('Can only add current date attendance');
 
         if (classId) {
             const existingClass = await findClassById(classId);
@@ -93,7 +99,7 @@ export const viewAttendance = async (req: customRequestWithPayload<{}, any, any,
             students = [studentId];
         }
 
-        
+
 
         const query: Record<string, any> = {};
 
