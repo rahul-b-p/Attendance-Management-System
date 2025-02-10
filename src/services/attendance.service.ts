@@ -1,6 +1,6 @@
 import { Status } from "../enums";
 import { Attendance } from "../models";
-import { AttendanceQuery, AttendancesToUse, AttendanceSummary, AttendanceSummaryQuery, AttendanceToFilter, CreateAttendanceBody, StanderdAttendance, YYYYMMDD } from "../types";
+import { AttendancesToUse, AttendanceSummary, AttendanceSummaryQuery, AttendanceToFilter, CreateAttendanceBody, StanderdAttendance, YYYYMMDD } from "../types";
 import { logger } from "../utils/logger";
 
 
@@ -23,7 +23,6 @@ const convertAttendanceToStanderd = (AttendanceData: any): StanderdAttendance =>
         remarks: AttendanceData.remarks
     }
 }
-
 
 export const insertAttendance = async (attendanceData: CreateAttendanceBody): Promise<AttendancesToUse> => {
     try {

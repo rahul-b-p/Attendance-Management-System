@@ -1,0 +1,9 @@
+version: "1"
+services:
+  attendnace-management-app:
+    image: rahulbp17/attendnace-management-app:0.1
+    ports: 
+      - "8080:4000"
+    env_file:
+      - .env
+    restart: always
