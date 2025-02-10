@@ -5,7 +5,6 @@ import { connectDB } from './connections';
 import { createDefaultAdmin } from './utils/adminSetup';
 import { accessTokenAuth, ErrorHandler, refreshTokenAuth, setResponseHeaders, validateUser } from './middlewares';
 import { classRouter, attendanceRouter, authRouter, refreshRouter, userRouter } from './routers';
-import { isStudentInAssignedClass } from './services';
 
 config();
 

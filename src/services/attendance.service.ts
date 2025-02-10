@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Status } from "../enums";
 import { Attendance } from "../models";
 import { AttendancesToUse, AttendanceSummary, AttendanceSummaryQuery, AttendanceToFilter, CreateAttendanceBody, StanderdAttendance, YYYYMMDD } from "../types";

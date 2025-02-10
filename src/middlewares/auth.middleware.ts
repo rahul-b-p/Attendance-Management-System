@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Response } from "express";
 import { verifyAccessToken, verifyRefreshToken } from "../config";
 import { AuthenticationError } from "../errors";

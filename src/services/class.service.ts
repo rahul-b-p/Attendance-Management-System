@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from "mongoose";
 import { roles } from "../enums";
 import { Class } from "../models";
@@ -18,7 +19,8 @@ const toClassToUse = (classData: any): ClassToUse => {
 
 export const insertClass = async (userId: string, classBody: CreateClassBody): Promise<ClassToUse> => {
     try {
-        let { className, students, teachers } = classBody;
+        const { className, ...restToBeChanged } = classBody;
+        let { students, teachers } = restToBeChanged;
         teachers = teachers ? [...teachers, userId] : [userId]
         students = students ? [...students] : [];
         const newClass = new Class({
@@ -209,7 +211,7 @@ export const isClassExistsById = async (_id: string): Promise<boolean> => {
         const existingClass = await Class.exists({ _id });
         if (existingClass) return true;
         else return false;
-    } catch (error:any) {
+    } catch (error: any) {
         logger.error(error);
         throw new Error(error.message)
     }
@@ -237,11 +239,14 @@ export const findClassNameByIds = async (classes: Types.ObjectId[]): Promise<cla
         const allClasses = (await Class.find({ _id: { $in: classes } }).lean()).map(toClassToUse);
 
         const transformedClass: classForAddInUser[] = await Promise.all(allClasses.map(async (user) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const teacherDetails = await findUsersInClass(user.teachers);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const studentDetails = await findUsersInClass(user.students)
             return {
                 classId: user._id,
                 className: user.className,
+                
             }
         }));
         return transformedClass;

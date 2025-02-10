@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from "mongoose";
 import { roles } from "../enums";
 import { User } from "../models";
 import { logger } from "../utils/logger";
-import { classForAddInUser, CreateUserBody, UpdateUserBody, UserToShowInClass, UserToUse, UserWithClassData, UserWithoutSensitiveData } from "../types";
+import { CreateUserBody, UpdateUserBody, UserToShowInClass, UserToUse, UserWithClassData, UserWithoutSensitiveData } from "../types";
 import { getEncryptedPassword } from "../config";
 import { findClassNameByIds, removeUserIdFromAllClass } from "./class.service";
 import { deleteAttendanceByStudentId } from "./attendance.service";
@@ -18,17 +19,18 @@ const convertUserToUseInClassData = (userData: any): UserToShowInClass => {
 }
 const checkStudentAndDeleteAttendance = (userData: UserToUse): Promise<boolean> => {
     if (userData.role !== roles.student) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve(true)
         })
     }
     else {
+        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 await deleteAttendanceByStudentId(userData._id.toString());
                 resolve(true)
-            } catch (error) {
-                reject('Failed to delete attendance data');
+            } catch (error: any) {
+                reject(`Failed to delete attendance data:${error.message}`,);
             }
         })
     }
@@ -62,6 +64,7 @@ export const userExistsById = async (_id: string): Promise<boolean> => {
     try {
         const userExists = await User.exists({ _id });
         return userExists ? true : false;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: any) {
         return false;
     }
@@ -99,6 +102,7 @@ export const findUserById = async (_id: string): Promise<UserToUse | null> => {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const deleteRefreshToken = async (_id: Types.ObjectId, refreshToken: string): Promise<void> => {
     try {
         const updatedUser = await User.findByIdAndUpdate({ _id }, { $unset: { refreshToken: 1 } });
@@ -114,16 +118,17 @@ export const deleteRefreshToken = async (_id: Types.ObjectId, refreshToken: stri
 export const insertUser = async (user: CreateUserBody & { role: roles }): Promise<UserWithoutSensitiveData> => {
     try {
         const { username, password, email, role } = user
-        const hashPassword = await getEncryptedPassword(password)
+        const hashedPassword = await getEncryptedPassword(password)
         const newUser = new User({
             username,
             email,
-            hashPassword: hashPassword,
+            hashPassword: hashedPassword,
             role
         });
         await newUser.save();
 
-        const { hashPassword: _, refreshToken: __, ...userWithoutSensitiveData } = newUser.toObject();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { hashPassword, refreshToken, ...userWithoutSensitiveData } = newUser.toObject();
         return userWithoutSensitiveData as UserWithoutSensitiveData;
     } catch (error: any) {
         logger.error(error.message);
@@ -156,16 +161,17 @@ export const updateUserById = async (_id: string, updateUserBody: UpdateUserBody
         const { username, password, email, role } = updateUserBody;
         const existingUser = await findUserById(_id);
         if (!existingUser) return null;
-        const hashPassword = password ? await getEncryptedPassword(password) : existingUser?.hashPassword
+        const hashedPassword = password ? await getEncryptedPassword(password) : existingUser?.hashPassword
         const updatedUser = await User.findByIdAndUpdate({ _id }, {
             username: username ? username : existingUser.username,
             email: email ? email : existingUser.email,
-            hashPassword,
+            hashPassword: hashedPassword,
             role: role ? role : existingUser.role
         }, { new: true });
         if (!updatedUser) return null;
         await updatedUser.save();
-        const { hashPassword: _, refreshToken: __, ...userWithoutSensitiveData } = updatedUser.toObject();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { hashPassword, refreshToken, ...userWithoutSensitiveData } = updatedUser.toObject();
         return userWithoutSensitiveData as UserWithoutSensitiveData;
     } catch (error: any) {
         logger.error(error);
@@ -193,7 +199,7 @@ export const DeleteUserById = async (_id: string): Promise<boolean> => {
 export const addToAssignClasses = async (teachers: string[], classId: string): Promise<void> => {
     try {
 
-        const updatedUser = await User.updateMany(
+        await User.updateMany(
             {
                 _id: { $in: teachers },
                 role: { $in: [roles.teacher, roles.admin] },
@@ -211,7 +217,7 @@ export const addToAssignClasses = async (teachers: string[], classId: string): P
 
 export const addToClasses = async (students: string[], classId: string): Promise<void> => {
     try {
-        const updatedUser = await User.updateMany(
+        await User.updateMany(
             {
                 _id: { $in: students },
                 role: roles.student,
@@ -240,7 +246,7 @@ export const findUsersInClass = async (userIds: string[]): Promise<UserToShowInC
 export const removeIdFromAssignClasses = async (teachers: string[], classId: string): Promise<void> => {
     try {
 
-        const updatedUser = await User.updateMany(
+        await User.updateMany(
             {
                 _id: { $in: teachers },
                 role: { $in: [roles.teacher, roles.admin] },
@@ -258,7 +264,7 @@ export const removeIdFromAssignClasses = async (teachers: string[], classId: str
 
 export const removeIdFromClasses = async (students: string[], classId: string): Promise<void> => {
     try {
-        const updatedUser = await User.updateMany(
+        await User.updateMany(
             {
                 _id: { $in: students },
                 role: roles.student,
@@ -274,7 +280,7 @@ export const removeIdFromClasses = async (students: string[], classId: string): 
     }
 }
 
-export const fetchUsersClassData = async (userData: UserWithoutSensitiveData[]):Promise<UserWithClassData[]> => {
+export const fetchUsersClassData = async (userData: UserWithoutSensitiveData[]): Promise<UserWithClassData[]> => {
     try {
         return await Promise.all(
             userData.map(async (user) => {

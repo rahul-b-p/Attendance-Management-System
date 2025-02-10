@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { TokenPayload } from '../interfaces';
 import { logger } from '../utils/logger';
-import { BlacklistToken, User } from '../models';
+import { BlacklistToken } from '../models';
 
 
 

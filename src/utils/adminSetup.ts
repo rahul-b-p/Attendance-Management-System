@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getEncryptedPassword } from "../config/password.config";
 import { roles } from "../enums";
 import { User } from "../models";

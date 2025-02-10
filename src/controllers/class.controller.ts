@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { NextFunction, Response } from "express";
 import { customRequestWithPayload } from "../interfaces";
 import { BadRequestError, ConflictError, InternalServerError, NotFoundError } from "../errors";

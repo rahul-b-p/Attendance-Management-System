@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import { roles } from "../enums";
-import { classForAddInUser, ClassToUse, ClassWithUserData } from "./class.type";
+import { classForAddInUser } from "./class.type";
 
 
 export type CreateUserBody = {
@@ -31,6 +31,6 @@ export type UserWithClassData = {
     username: string;
     email: string;
     role: roles;
-    assignedClasses?:classForAddInUser[]
+    assignedClasses?: classForAddInUser[]
     classes?: classForAddInUser[];
 }

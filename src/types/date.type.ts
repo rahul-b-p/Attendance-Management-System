@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type BuildTuple<N extends number, T extends any[] = []> =
     T['length'] extends N
     ? T

@@ -24,7 +24,7 @@ export const validateReqBody = (schema: ZodSchema) => {
     };
 }
 
-export const validateReqQuery= (schema: ZodSchema) => {
+export const validateReqQuery = (schema: ZodSchema) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
             req.query = schema.parse(req.query);
@@ -32,7 +32,7 @@ export const validateReqQuery= (schema: ZodSchema) => {
         } catch (error) {
             if (error instanceof ZodError) {
                 error.errors.map((e) => {
-                    return next(new BadRequestError(`Bad Request, Invalid Query`));
+                    return next(new BadRequestError(`Bad Request, Invalid Query:${e.message}`));
                 })
             }
             else next(new InternalServerError('Validation failed'));

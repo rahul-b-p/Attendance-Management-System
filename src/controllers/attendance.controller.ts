@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { NextFunction, Response } from "express";
 import { customRequestWithPayload } from "../interfaces";
 import { logger } from "../utils/logger";
@@ -141,6 +143,7 @@ export const filterAndSearchAttendance = async (req: customRequestWithPayload<{}
                 $lte: endDate
             };
         }
+        // eslint-disable-next-line no-dupe-else-if
         else if (startDate && endDate) {
             query.date = {
                 $gte: startDate,

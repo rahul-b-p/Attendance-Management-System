@@ -29,6 +29,7 @@ export const verifyRefreshToken = async (token: string): Promise<TokenPayload> =
 
         const result = jwt.verify(token, secretKey) as TokenPayload;
         return result;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         throw new Error("unauthorized token");
     }
